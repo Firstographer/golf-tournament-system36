@@ -120,7 +120,6 @@
       const [currentEventId, setCurrentEventId] = useState(null);
       const [isAdmin, setIsAdmin] = useState(false);
       
-      // Modal States
       const [showLoginModal, setShowLoginModal] = useState(false);
       const [pin, setPin] = useState('');
       const [showCreateModal, setShowCreateModal] = useState(false);
@@ -234,8 +233,12 @@
       };
 
       const updateScore = (playerId, holeIndex, value) => {
+        if (value === '') {
+          db.ref(`events/${currentEventId}/players/${playerId}/scores/${holeIndex}`).set('');
+          return;
+        }
         let val = parseInt(value) || 0;
-        if (val > 20) val = 20;
+        if (val > 20) val = 20; 
         db.ref(`events/${currentEventId}/players/${playerId}/scores/${holeIndex}`).set(val);
       };
 
@@ -294,7 +297,6 @@
         );
       };
 
-      // --- Main Render Logic ---
       const event = currentEventId ? events[currentEventId] : null;
       let displayPlayers = []; let rankedPlayers = []; let adminPlayers = []; let totalPar = 0; let activeRules = DEFAULT_RULES;
 
@@ -334,7 +336,6 @@
 
       return (
         <div className="min-h-screen relative pb-10">
-          {/* Header */}
           <header className="bg-emerald-900 text-white shadow-md border-b-4 border-[#d4af37]">
             <div className="max-w-7xl mx-auto px-4 py-4 relative flex items-center justify-between">
               {currentEventId ? (
@@ -369,7 +370,6 @@
 
           <main className="max-w-7xl mx-auto px-2 md:px-4 py-6 md:py-8">
             
-            {/* View: Home (All Events) */}
             {!currentEventId && (
               <div className="max-w-5xl mx-auto">
                 {isAdmin && (
@@ -409,7 +409,6 @@
               </div>
             )}
 
-            {/* View: Leaderboard */}
             {currentEventId && (!isAdmin || adminViewMode === 'leaderboard') && (
               <div>
                 <div className="flex justify-center gap-2 mb-6 flex-wrap">
@@ -424,11 +423,9 @@
                   <div className="bg-emerald-900 text-white p-3 md:p-4 text-center border-b border-[#d4af37] relative">
                     <h2 className="text-lg md:text-xl font-bold">{activeTab === 'ALL' ? 'Leaderboard - Overall' : activeTab === 'Senior' || activeTab === 'Lady' ? `Leaderboard - ${activeTab}` : `Leaderboard - Group ${activeTab}`}</h2>
                     <p className="text-xs md:text-sm text-emerald-200 mb-1">System 36 Format</p>
-                    {/* ปุ่มดู/แก้ Rules */}
                     <button onClick={() => { setEditingRules(activeRules); setShowRulesModal(true); }} className="mt-2 inline-flex items-center text-[10px] md:text-xs bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 px-3 py-1 rounded-full border border-emerald-700 transition-colors">
                       <i className="fas fa-info-circle mr-1.5"></i> Scoring Rules {isAdmin ? '(Edit)' : ''}
                     </button>
-                    {/* ปุ่ม Save Image (ซ่อนตอน Capture) */}
                     <button onClick={() => saveImage(event.name)} data-html2canvas-ignore className="absolute right-4 bottom-4 bg-emerald-700 text-white px-3 py-1.5 rounded shadow text-[10px] md:text-xs hover:bg-emerald-600"><i className="fas fa-download mr-1"></i>Save Image</button>
                   </div>
                   
@@ -440,7 +437,7 @@
                           <th className="p-3 md:p-4 whitespace-nowrap">Player</th>
                           <th className="p-3 md:p-4 text-center whitespace-nowrap">Group</th>
                           <th className="p-3 md:p-4 text-center whitespace-nowrap">Gross</th>
-                          <th className="p-3 md:p-4 text-center whitespace-nowrap">Stableford<br/><span className="text-[10px] md:text-xs">Points</span></th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap">Stableford</th>
                           <th className="p-3 md:p-4 text-center whitespace-nowrap">HCP</th>
                           <th className="p-3 md:p-4 text-center whitespace-nowrap">NET</th>
                         </tr>
@@ -464,7 +461,6 @@
               </div>
             )}
 
-            {/* View: Admin Entry */}
             {currentEventId && isAdmin && adminViewMode === 'entry' && (
               <div>
                 <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 mb-6">
@@ -515,7 +511,14 @@
                             </td>
                             {p.scores.map((score, idx) => (
                               <td key={idx} className="p-0.5 md:p-1 border-r border-gray-100">
-                                <input type="number" min="1" max="20" value={score || ''} onChange={(e) => updateScore(p.id, idx, e.target.value)} className={`w-9 h-8 md:w-11 md:h-10 text-center border rounded font-mono font-bold text-xs md:text-sm focus:ring-2 focus:border-emerald-500 outline-none transition-colors ${getScoreColorClass(score, event.pars[idx])}`} />
+                                <input 
+                                  type="number" min="1" max="20" 
+                                  inputMode="numeric" pattern="[0-9]*"
+                                  value={score || ''} 
+                                  onFocus={(e) => e.target.select()}
+                                  onChange={(e) => updateScore(p.id, idx, e.target.value)} 
+                                  className={`w-9 h-8 md:w-11 md:h-10 text-center border rounded font-mono font-bold text-xs md:text-sm focus:ring-2 focus:border-emerald-500 outline-none transition-colors ${getScoreColorClass(score, event.pars[idx])}`} 
+                                />
                               </td>
                             ))}
                             <td className="p-2 md:p-3 font-bold font-mono text-emerald-800 bg-gray-50 border-l text-sm md:text-lg">{p.grossScore}</td>
@@ -529,9 +532,6 @@
             )}
           </main>
 
-          {/* ALL MODALS PLACED HERE AT ROOT LEVEL */}
-          
-          {/* 1. Login Modal */}
           {showLoginModal && (
             <div className="fixed inset-0 glass-modal flex items-center justify-center p-4 z-[999]">
               <div className="bg-white rounded-2xl max-w-sm w-full p-8 shadow-2xl relative border-t-8 border-emerald-900 text-center">
@@ -547,7 +547,6 @@
             </div>
           )}
 
-          {/* 2. Create Event Modal */}
           {showCreateModal && (
             <div className="fixed inset-0 glass-modal flex items-center justify-center p-4 z-[990]">
               <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto hide-scroll">
@@ -587,7 +586,7 @@
                   <div className="bg-[#fdfbf7] p-4 rounded-xl border border-[#d4af37]/30 mb-6">
                     <label className="block text-sm font-bold text-emerald-900 mb-3"><i className="fas fa-sliders-h mr-1 text-[#d4af37]"></i> ตั้งค่าคะแนน Stableford (เฉพาะรายการนี้)</label>
                     <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                      {Object.entries({albatross:'Albatross (-3)', eagle:'Eagle (-2)', birdie:'Birdie (-1)', par:'Par (0)', bogey:'Bogey (+1)', doubleBogey:'Double+ (>=+2)'}).map(([key, label]) => (
+                      {Object.entries({albatross:'Albatross (-3)', eagle:'Eagle (-2)', birdie:'Birdie (-1)', par:'Par (0)', bogey:'Bogey (+1)', doubleBogey:'Double+ (≥+2)'}).map(([key, label]) => (
                         <div key={key} className="text-center">
                           <label className="block text-[10px] font-bold text-gray-600 mb-1 leading-tight h-6">{label}</label>
                           <input type="number" value={newEventData.rules[key]} onChange={(e) => setNewEventData({...newEventData, rules: {...newEventData.rules, [key]: parseInt(e.target.value)||0}})} className="w-full text-center border border-gray-300 rounded p-2 font-mono font-bold text-sm bg-white outline-none focus:border-emerald-500" />
@@ -604,7 +603,6 @@
             </div>
           )}
 
-          {/* 3. Scoring Rules Modal (View / Edit) */}
           {showRulesModal && (
             <div className="fixed inset-0 glass-modal flex items-center justify-center p-4 z-[980]">
               <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative border-t-8 border-emerald-900">
@@ -653,7 +651,6 @@
             </div>
           )}
 
-          {/* 4. Edit Player Info Modal */}
           {editingPlayer && (
             <div className="fixed inset-0 glass-modal flex items-center justify-center p-4 z-[970]">
               <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
@@ -685,7 +682,6 @@
             </div>
           )}
 
-          {/* 5. View Scorecard Modal */}
           {viewScorecard && (
             <div className="fixed inset-0 glass-modal flex items-center justify-center p-2 md:p-4 z-[960]">
               <div className="bg-white rounded-2xl max-w-2xl w-full p-4 md:p-6 shadow-2xl max-h-[90vh] overflow-y-auto hide-scroll">
@@ -699,8 +695,8 @@
                   <div className="bg-gray-50 border p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-gray-500 mb-1">HCP</p><p className="text-xl md:text-3xl font-mono text-gray-600 font-bold">{viewScorecard.holesPlayed === 18 ? viewScorecard.handicap : '-'}</p></div>
                   <div className="bg-emerald-50 border border-emerald-200 p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-emerald-700 mb-1">NET</p><p className="text-xl md:text-3xl font-mono text-emerald-700 font-bold">{viewScorecard.holesPlayed === 18 ? viewScorecard.netScore : '-'}</p></div>
                 </div>
-                {renderNineHoles(0, 9, 'Front 9', event.pars, activeRules)}
-                {renderNineHoles(9, 18, 'Back 9', event.pars, activeRules)}
+                {renderNineHoles(0, 9, 'OUT (1-9)', event.pars, activeRules)}
+                {renderNineHoles(9, 18, 'IN (10-18)', event.pars, activeRules)}
               </div>
             </div>
           )}
