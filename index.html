@@ -483,6 +483,7 @@
                     <table className="w-full text-center border-collapse">
                       <thead className="sticky top-0 z-40 bg-gray-100 shadow-sm">
                         <tr className="bg-emerald-900 text-white select-none">
+                          {/* ตรึง Player header ให้อยู่มุมซ้ายบนสุดด้วย z-50 และ left-0 */}
                           <th onClick={() => setAdminSort({ key: 'name', direction: adminSort.key==='name' && adminSort.direction==='asc' ? 'desc' : 'asc' })} className="sticky left-0 z-50 bg-emerald-900 p-2 md:p-3 min-w-[200px] md:min-w-[240px] text-left border-r border-emerald-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] cursor-pointer hover:bg-emerald-800 whitespace-nowrap text-xs md:text-sm">
                             Player
                           </th>
@@ -492,7 +493,8 @@
                           <th className="p-2 md:p-3 font-bold min-w-[50px] md:min-w-[60px] text-xs md:text-sm">TOT</th>
                         </tr>
                         <tr className="bg-gray-200 text-emerald-900 text-[10px] md:text-xs border-b border-gray-300">
-                          <th className="sticky left-0 z-50 bg-gray-200 p-2 text-right pr-4 font-bold border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Par</th>
+                          {/* ตรึง Par header แถวที่สองฝั่งซ้ายด้วย z-30 และ left-0 */}
+                          <th className="sticky left-0 z-30 bg-gray-200 p-2 text-right pr-4 font-bold border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Par</th>
                           {event.pars.map((par, i) => <th key={i} className="p-1 md:p-2 border-r border-gray-300 font-bold">{par}</th>)}
                           <th className="p-2 font-bold">{totalPar}</th>
                         </tr>
@@ -500,6 +502,7 @@
                       <tbody>
                         {adminPlayers.map(p => (
                           <tr key={p.id} className="border-b border-gray-200 hover:bg-emerald-50 group">
+                            {/* ตรึงคอลัมน์ชื่อผู้เล่นฝั่งซ้ายด้วย z-20 และ left-0 ให้เลื่อนตามแนวตั้งอย่างเดียว */}
                             <td className="sticky left-0 z-20 bg-white p-2 md:p-3 border-r flex items-center justify-between shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px] md:min-w-[240px]">
                               <div className="flex items-center gap-1 overflow-hidden flex-grow mr-1">
                                 <span onClick={() => setEditingPlayer(p)} className="cursor-pointer hover:underline text-emerald-800 font-bold text-xs md:text-sm truncate" title={p.name}>{p.name}</span>
