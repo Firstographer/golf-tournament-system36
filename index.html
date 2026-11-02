@@ -18,10 +18,14 @@
 
   <style>
     body { background-color: #f5f7f5; }
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f1f1; }
     ::-webkit-scrollbar-thumb { background: #065f46; border-radius: 4px; }
     .glass-modal { background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); }
+    
+    /* ซ่อน Scrollbar ของตารางแต่ยังสไลด์ได้ เพื่อความสวยงามบนมือถือ */
+    .hide-scroll::-webkit-scrollbar { display: none; }
+    .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body>
@@ -105,7 +109,6 @@
       return { ...player, scores, grossScore, stablefordPoints, handicap, netScore, group, holesPlayed };
     };
 
-    // ฟังก์ชันเปรียบเทียบสกอร์เพื่อหาอันดับ (Countback Logic)
     const comparePlayers = (a, b) => {
       if (a.holesPlayed < 18 && b.holesPlayed === 18) return 1;
       if (b.holesPlayed < 18 && a.holesPlayed === 18) return -1;
@@ -199,23 +202,19 @@
           const gender = Math.random() > 0.85 ? 'Lady' : 'Men';
           const isSenior = gender === 'Men' && Math.random() > 0.85;
 
-          // สุ่มเป้าหมาย Gross Score ให้อยู่ในช่วง 75 - 100
           const targetGross = Math.floor(Math.random() * (100 - 75 + 1)) + 75;
           let scores = [...pars];
-          let currentGross = 72; // เริ่มต้นที่ Par 72
+          let currentGross = 72;
           
-          // สอดแทรกเบอร์ดี้เล็กน้อยเพื่อความสมจริง
           const numBirdies = Math.floor(Math.random() * 3);
           for(let j=0; j<numBirdies; j++) {
              const idx = Math.floor(Math.random() * 18);
-             // ห้ามทำโฮลอินวันใน Mockup เพื่อความชัวร์
              if (scores[idx] > pars[idx] - 1 && scores[idx] > 2) { 
                 scores[idx] -= 1;
                 currentGross -= 1;
              }
           }
           
-          // เติมแต้มในหลุมต่างๆ จนกว่าจะได้ targetGross โดยเช็คกฎ Double Par
           while (currentGross < targetGross) {
              const idx = Math.floor(Math.random() * 18);
              if (scores[idx] < pars[idx] * 2) {
@@ -240,7 +239,7 @@
           pars: pars,
           players: mockPlayers
         }).then(() => {
-          alert('✅ สร้างข้อมูลจำลอง Gross 75-100 (Max Double Par) สำเร็จ!');
+          alert('✅ สร้างข้อมูลจำลอง Gross 75-100 สำเร็จ!');
         });
       };
 
@@ -312,10 +311,40 @@
       };
 
       const getRankIcon = (rankNum, rankStr) => {
-        if (rankNum === 1) return <div className="flex items-center justify-center gap-1.5"><i className="fas fa-trophy text-[#d4af37] text-xl drop-shadow-sm"></i><span className="text-xs font-extrabold text-[#d4af37]">{rankStr}</span></div>;
-        if (rankNum === 2) return <div className="flex items-center justify-center gap-1.5"><i className="fas fa-trophy text-[#a0a0a0] text-xl drop-shadow-sm"></i><span className="text-xs font-extrabold text-[#909090]">{rankStr}</span></div>;
-        if (rankNum === 3) return <div className="flex items-center justify-center gap-1.5"><i className="fas fa-trophy text-[#cd7f32] text-xl drop-shadow-sm"></i><span className="text-xs font-extrabold text-[#b87333]">{rankStr}</span></div>;
+        if (rankNum === 1) return <div className="flex items-center justify-center gap-1.5"><i className="fas fa-trophy text-[#d4af37] text-lg md:text-xl drop-shadow-sm"></i><span className="text-xs font-extrabold text-[#d4af37]">{rankStr}</span></div>;
+        if (rankNum === 2) return <div className="flex items-center justify-center gap-1.5"><i className="fas fa-trophy text-[#a0a0a0] text-lg md:text-xl drop-shadow-sm"></i><span className="text-xs font-extrabold text-[#909090]">{rankStr}</span></div>;
+        if (rankNum === 3) return <div className="flex items-center justify-center gap-1.5"><i className="fas fa-trophy text-[#cd7f32] text-lg md:text-xl drop-shadow-sm"></i><span className="text-xs font-extrabold text-[#b87333]">{rankStr}</span></div>;
         return rankStr;
+      };
+
+      // Component: แยกตารางเรนเดอร์ 9 หลุมให้ดูง่ายบนมือถือ
+      const renderNineHoles = (startIndex, endIndex, title, eventPars) => {
+        const slicedPars = eventPars.slice(startIndex, endIndex);
+        const slicedScores = viewScorecard.scores.slice(startIndex, endIndex);
+        return (
+          <div className="overflow-x-auto hide-scroll rounded-xl border mb-4 shadow-sm">
+            <table className="w-full text-center text-xs md:text-sm border-collapse min-w-max">
+              <tbody>
+                <tr className="bg-emerald-900 text-white">
+                  <td className="p-1.5 md:p-2 border border-emerald-800 font-bold whitespace-nowrap px-3">{title}</td>
+                  {slicedPars.map((_,i) => <td key={i} className="p-1.5 md:p-2 border border-emerald-800 w-8 md:w-10">{startIndex + i + 1}</td>)}
+                </tr>
+                <tr className="bg-gray-100 font-bold text-emerald-900">
+                  <td className="p-1.5 md:p-2 border border-gray-300 whitespace-nowrap">Par</td>
+                  {slicedPars.map((par, i) => <td key={i} className="p-1.5 md:p-2 border border-gray-300">{par}</td>)}
+                </tr>
+                <tr>
+                  <td className="p-1.5 md:p-2 border border-gray-200 font-bold whitespace-nowrap">Score</td>
+                  {slicedScores.map((score, i) => <td key={i} className={`p-1.5 md:p-2 border border-gray-200 font-mono font-bold text-sm md:text-base ${score>0 ? (score<slicedPars[i] ? 'text-red-600 bg-red-50' : score>slicedPars[i] ? 'text-blue-600 bg-blue-50' : '') : ''}`}>{score || '-'}</td>)}
+                </tr>
+                <tr className="bg-[#fdfbf7]">
+                  <td className="p-1.5 md:p-2 border border-[#d4af37]/30 font-bold text-[#9c7e1c] text-[10px] md:text-xs whitespace-nowrap">Pts</td>
+                  {slicedScores.map((score, i) => <td key={i} className="p-1.5 md:p-2 border border-[#d4af37]/30 font-mono font-bold text-[#d4af37] text-xs md:text-sm">{score>0 ? getStablefordPoints(score, slicedPars[i]) : '-'}</td>)}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        );
       };
 
       if (!currentEventId) {
@@ -339,11 +368,11 @@
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-emerald-900">วันที่ Mockup:</span>
                     <input type="date" value={mockupDate} onChange={(e) => setMockupDate(e.target.value)} className="border p-2 rounded-lg text-sm bg-white" />
-                    <button onClick={generateMockupEvent} className="bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-emerald-800 shadow">
+                    <button onClick={generateMockupEvent} className="bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-emerald-800 shadow whitespace-nowrap">
                       <i className="fas fa-magic mr-1"></i> สร้าง Mockup 60 คน
                     </button>
                   </div>
-                  <button onClick={() => setShowCreateModal(true)} className="flex items-center space-x-2 bg-[#d4af37] text-emerald-950 px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-[#b5952f] transition-transform transform hover:-translate-y-1">
+                  <button onClick={() => setShowCreateModal(true)} className="flex items-center space-x-2 bg-[#d4af37] text-emerald-950 px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-[#b5952f] transition-transform transform hover:-translate-y-1 w-full md:w-auto justify-center">
                     <i className="fas fa-plus"></i><span>สร้างการแข่งขันใหม่</span>
                   </button>
                 </div>
@@ -406,19 +435,18 @@
                       </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div><label className="block text-sm font-bold mb-1">ชื่อรายการแข่งขัน</label><input type="text" value={newEventData.name} onChange={(e)=>setNewEventData({...newEventData, name:e.target.value})} required className="w-full border p-3 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-emerald-500"/></div>
                       <div>
                         <label className="block text-sm font-bold mb-1">วันที่จัดงาน</label>
                         <input type="date" value={newEventData.date} onChange={(e)=>setNewEventData({...newEventData, date:e.target.value})} required className="w-full border p-3 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-emerald-500"/>
-                        <p className="text-[10px] text-gray-400 mt-1">* รูปแบบวันที่อิงตามภาษาเครื่องของคุณ</p>
                       </div>
                     </div>
 
                     <label className="block text-sm font-bold text-gray-700 mb-2">กำหนดค่า Par ทั้ง 18 หลุม</label>
-                    <div className="grid grid-cols-6 md:grid-cols-9 gap-2 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div className="grid grid-cols-6 md:grid-cols-9 gap-2 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200 overflow-x-auto">
                       {newEventData.pars.map((par, i) => (
-                        <div key={i} className="text-center">
+                        <div key={i} className="text-center min-w-[40px]">
                           <label className="block text-[10px] font-bold text-emerald-800 mb-1">H{i+1}</label>
                           <input type="number" min="3" max="5" value={par} onChange={(e) => {
                             const newPars = [...newEventData.pars]; newPars[i] = parseInt(e.target.value)||4;
@@ -429,7 +457,7 @@
                     </div>
                     
                     <div className="flex justify-end pt-4 border-t">
-                      <button type="submit" id="btn-save-event" className="bg-emerald-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-emerald-800 transition-colors">Save Event</button>
+                      <button type="submit" id="btn-save-event" className="bg-emerald-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-emerald-800 transition-colors w-full md:w-auto">Save Event</button>
                     </div>
                   </form>
                 </div>
@@ -449,27 +477,14 @@
       let displayPlayers = [...processedPlayers];
       if (activeTab !== 'ALL') displayPlayers = displayPlayers.filter(p => p.group === activeTab);
       
-      // เรียงลำดับตาม Countback
       displayPlayers.sort(comparePlayers);
 
-      // คำนวณ Rank อย่างแม่นยำเพื่อรองรับ T1, 2, 3 ถ้วยทอง เงิน ทองแดง
       let currentRankNum = 1;
       const rankedPlayers = displayPlayers.map((p, i) => {
         if (p.holesPlayed < 18) return { ...p, rankNum: 999, rankStr: '-' };
-        
-        let isTieWithPrev = false;
-        let isTieWithNext = false;
-        
-        if (i > 0 && comparePlayers(p, displayPlayers[i-1]) === 0) {
-            isTieWithPrev = true;
-        } else {
-            currentRankNum = i + 1;
-        }
-        
-        if (i < displayPlayers.length - 1 && comparePlayers(p, displayPlayers[i+1]) === 0) {
-            isTieWithNext = true;
-        }
-        
+        let isTieWithPrev = false; let isTieWithNext = false;
+        if (i > 0 && comparePlayers(p, displayPlayers[i-1]) === 0) { isTieWithPrev = true; } else { currentRankNum = i + 1; }
+        if (i < displayPlayers.length - 1 && comparePlayers(p, displayPlayers[i+1]) === 0) { isTieWithNext = true; }
         const isTie = isTieWithPrev || isTieWithNext;
         return { ...p, rankNum: currentRankNum, rankStr: isTie ? `T${currentRankNum}` : `${currentRankNum}` };
       });
@@ -505,62 +520,63 @@
         <div className="min-h-screen">
           <header className="bg-emerald-900 text-white shadow-md border-b-4 border-[#d4af37]">
             <div className="max-w-7xl mx-auto px-4 py-4 relative flex items-center justify-between">
-              <button onClick={() => setCurrentEventId(null)} className="text-emerald-300 hover:text-white font-bold"><i className="fas fa-arrow-left mr-2"></i>Back</button>
-              <h1 className="text-xl md:text-2xl font-bold text-center text-[#fdfbf7] truncate mx-4 flex-grow">{event.name}</h1>
-              <div className="flex items-center gap-2">
+              <button onClick={() => setCurrentEventId(null)} className="text-emerald-300 hover:text-white font-bold whitespace-nowrap text-sm md:text-base"><i className="fas fa-arrow-left md:mr-2"></i><span className="hidden md:inline">Back</span></button>
+              <h1 className="text-lg md:text-2xl font-bold text-center text-[#fdfbf7] truncate mx-2 flex-grow">{event.name}</h1>
+              <div className="flex items-center gap-1 md:gap-2">
                 {isAdmin && (
-                  <button onClick={() => setAdminViewMode(adminViewMode === 'entry' ? 'leaderboard' : 'entry')} className="text-xs bg-amber-500 text-emerald-950 font-bold px-3 py-1.5 rounded-full shadow hover:bg-amber-400 transition-colors">
-                    <i className={`fas ${adminViewMode === 'entry' ? 'fas fa-trophy' : 'fas fa-edit'} mr-1`}></i>{adminViewMode === 'entry' ? 'View Leaderboard' : 'Score Entry'}
+                  <button onClick={() => setAdminViewMode(adminViewMode === 'entry' ? 'leaderboard' : 'entry')} className="text-[10px] md:text-xs bg-amber-500 text-emerald-950 font-bold px-2 md:px-3 py-1.5 rounded-full shadow hover:bg-amber-400 transition-colors whitespace-nowrap">
+                    <i className={`fas ${adminViewMode === 'entry' ? 'fas fa-trophy' : 'fas fa-edit'} md:mr-1`}></i><span className="hidden md:inline">{adminViewMode === 'entry' ? 'View Leaderboard' : 'Score Entry'}</span>
                   </button>
                 )}
-                <button onClick={() => isAdmin ? setIsAdmin(false) : setShowLoginModal(true)} className="text-xs text-emerald-300 hover:text-white bg-emerald-800 px-3 py-1.5 rounded-full transition-colors flex-shrink-0">
-                  <i className={`fas ${isAdmin ? 'fa-sign-out-alt' : 'fa-lock'} mr-1`}></i>{isAdmin ? 'Exit Admin' : 'Admin Login'}
+                <button onClick={() => isAdmin ? setIsAdmin(false) : setShowLoginModal(true)} className="text-[10px] md:text-xs text-emerald-300 hover:text-white bg-emerald-800 px-2 md:px-3 py-1.5 rounded-full transition-colors flex-shrink-0 whitespace-nowrap">
+                  <i className={`fas ${isAdmin ? 'fa-sign-out-alt' : 'fa-lock'} md:mr-1`}></i><span className="hidden md:inline">{isAdmin ? 'Exit Admin' : 'Admin Login'}</span>
                 </button>
               </div>
             </div>
           </header>
 
-          <main className="max-w-7xl mx-auto px-2 md:px-4 py-8">
+          <main className="max-w-7xl mx-auto px-2 md:px-4 py-6 md:py-8">
             {(!isAdmin || adminViewMode === 'leaderboard') && (
               <div>
                 <div className="flex justify-center gap-2 mb-6 flex-wrap">
                   {['ALL', 'A', 'B', 'C', 'Senior', 'Lady'].map(tab => (
-                    <button key={tab} onClick={() => setActiveTab(tab)} className={`px-5 py-2 rounded-full text-sm font-bold border transition-all ${activeTab === tab ? 'bg-emerald-800 text-white border-emerald-900 shadow-md' : 'bg-white text-emerald-800 border-emerald-200'}`}>
+                    <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-1.5 md:px-5 md:py-2 rounded-full text-xs md:text-sm font-bold border transition-all ${activeTab === tab ? 'bg-emerald-800 text-white border-emerald-900 shadow-md' : 'bg-white text-emerald-800 border-emerald-200'}`}>
                       {tab === 'ALL' ? 'Overall' : tab === 'Senior' || tab === 'Lady' ? tab : `Group ${tab}`}
                     </button>
                   ))}
                 </div>
-                <div className="flex justify-end mb-4"><button onClick={() => saveImage(event.name)} className="bg-emerald-700 text-white px-4 py-2 rounded-lg shadow font-bold"><i className="fas fa-download mr-2"></i>Save Image</button></div>
+                <div className="flex justify-end mb-4"><button onClick={() => saveImage(event.name)} className="bg-emerald-700 text-white px-4 py-2 rounded-lg shadow font-bold text-sm md:text-base"><i className="fas fa-download mr-2"></i>Save Image</button></div>
                 
                 <div id="leaderboard-capture" className="bg-white rounded-xl shadow-lg overflow-hidden pb-4 border border-gray-200">
-                  <div className="bg-emerald-900 text-white p-4 text-center border-b border-[#d4af37]">
-                    <h2 className="text-xl font-bold">{getLeaderboardTitle()}</h2>
-                    <p className="text-sm text-emerald-200">System 36 Format</p>
+                  <div className="bg-emerald-900 text-white p-3 md:p-4 text-center border-b border-[#d4af37]">
+                    <h2 className="text-lg md:text-xl font-bold">{getLeaderboardTitle()}</h2>
+                    <p className="text-xs md:text-sm text-emerald-200">System 36 Format</p>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                  {/* ซ่อน Scrollbar ของตารางแต่ยังให้ใช้มือปัดซ้ายขวาได้ */}
+                  <div className="overflow-x-auto hide-scroll">
+                    <table className="w-full text-left text-xs md:text-sm">
                       <thead className="bg-gray-100 text-emerald-900 border-b">
                         <tr>
-                          <th className="p-4 text-center">Rank</th>
-                          <th className="p-4">Player</th>
-                          <th className="p-4 text-center">Group</th>
-                          <th className="p-4 text-center">Gross</th>
-                          <th className="p-4 text-center">Stableford Points</th>
-                          <th className="p-4 text-center">HCP</th>
-                          <th className="p-4 text-center">NET</th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap">Rank</th>
+                          <th className="p-3 md:p-4 whitespace-nowrap">Player</th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap">Group</th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap">Gross</th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap">Stableford<br/><span className="text-[10px] md:text-xs">Points</span></th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap">HCP</th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap">NET</th>
                         </tr>
                       </thead>
                       <tbody>
                         {rankedPlayers.map((p) => {
                           return (
                             <tr key={p.id} onClick={() => setViewScorecard(p)} className="border-b border-gray-100 hover:bg-emerald-50 cursor-pointer">
-                              <td className="p-4 text-center font-bold">{p.rankStr === '-' ? '-' : getRankIcon(p.rankNum, p.rankStr)}</td>
-                              <td className="p-4 font-bold text-emerald-900">{p.name} {p.gender === 'Lady' && <span className="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full ml-2">Lady</span>} {p.isSenior && <span className="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full ml-2">Senior</span>}</td>
-                              <td className="p-4 text-center text-sm font-bold text-gray-600">{p.group}</td>
-                              <td className="p-4 text-center font-mono font-semibold text-gray-900">{p.grossScore || '-'}</td>
-                              <td className="p-4 text-center font-mono font-bold text-[#d4af37]">{p.stablefordPoints}</td>
-                              <td className="p-4 text-center font-mono text-gray-500">{p.holesPlayed === 18 ? p.handicap : '-'}</td>
-                              <td className="p-4 text-center font-mono font-extrabold text-lg text-emerald-700 bg-emerald-50/50">{p.holesPlayed === 18 ? p.netScore : 'Playing'}</td>
+                              <td className="p-3 md:p-4 text-center font-bold whitespace-nowrap">{p.rankStr === '-' ? '-' : getRankIcon(p.rankNum, p.rankStr)}</td>
+                              <td className="p-3 md:p-4 font-bold text-emerald-900 whitespace-nowrap">{p.name} {p.gender === 'Lady' && <span className="bg-rose-100 text-rose-700 text-[10px] md:text-xs px-2 py-0.5 rounded-full ml-1">Lady</span>} {p.isSenior && <span className="bg-amber-100 text-amber-700 text-[10px] md:text-xs px-2 py-0.5 rounded-full ml-1">Senior</span>}</td>
+                              <td className="p-3 md:p-4 text-center font-bold text-gray-600 whitespace-nowrap">{p.group}</td>
+                              <td className="p-3 md:p-4 text-center font-mono font-semibold text-gray-900 whitespace-nowrap">{p.grossScore || '-'}</td>
+                              <td className="p-3 md:p-4 text-center font-mono font-bold text-[#d4af37] whitespace-nowrap">{p.stablefordPoints}</td>
+                              <td className="p-3 md:p-4 text-center font-mono text-gray-500 whitespace-nowrap">{p.holesPlayed === 18 ? p.handicap : '-'}</td>
+                              <td className="p-3 md:p-4 text-center font-mono font-extrabold text-base md:text-lg text-emerald-700 bg-emerald-50/50 whitespace-nowrap">{p.holesPlayed === 18 ? p.netScore : 'Playing'}</td>
                             </tr>
                           )
                         })}
@@ -573,66 +589,67 @@
 
             {isAdmin && adminViewMode === 'entry' && (
               <div>
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6">
-                  <form onSubmit={addPlayer} className="flex flex-wrap items-center gap-3 w-full">
-                    <input type="text" value={newPlayer.name} onChange={e=>setNewPlayer({...newPlayer, name:e.target.value})} placeholder="ชื่อนักกอล์ฟ" required className="border border-gray-300 rounded-lg p-3 flex-grow bg-gray-50 focus:ring-2 focus:ring-emerald-500 outline-none" />
-                    <select value={newPlayer.gender} onChange={e=>setNewPlayer({...newPlayer, gender:e.target.value, isSenior: e.target.value==='Lady'?false:newPlayer.isSenior})} className="border border-gray-300 rounded-lg p-3 bg-gray-50 outline-none">
-                      <option value="Men">Men</option><option value="Lady">Lady</option>
-                    </select>
-                    <label className={`flex items-center space-x-2 cursor-pointer ${newPlayer.gender==='Lady'?'opacity-40':''}`}>
-                      <input type="checkbox" checked={newPlayer.isSenior} onChange={e=>setNewPlayer({...newPlayer, isSenior:e.target.checked})} disabled={newPlayer.gender==='Lady'} className="rounded w-5 h-5 text-emerald-600 focus:ring-emerald-500" /> <span className="font-bold">Senior</span>
-                    </label>
-                    <button type="submit" className="bg-emerald-700 text-white px-8 py-3 rounded-lg font-bold shadow hover:bg-emerald-800">Add Player</button>
+                <div className="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 mb-6">
+                  <form onSubmit={addPlayer} className="flex flex-col md:flex-row items-center gap-3 w-full">
+                    <input type="text" value={newPlayer.name} onChange={e=>setNewPlayer({...newPlayer, name:e.target.value})} placeholder="ชื่อนักกอล์ฟ" required className="w-full md:w-auto border border-gray-300 rounded-lg p-3 flex-grow bg-gray-50 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                    <div className="flex w-full md:w-auto gap-3 items-center">
+                        <select value={newPlayer.gender} onChange={e=>setNewPlayer({...newPlayer, gender:e.target.value, isSenior: e.target.value==='Lady'?false:newPlayer.isSenior})} className="border border-gray-300 rounded-lg p-3 bg-gray-50 outline-none flex-grow md:flex-grow-0">
+                          <option value="Men">Men</option><option value="Lady">Lady</option>
+                        </select>
+                        <label className={`flex items-center space-x-2 cursor-pointer ${newPlayer.gender==='Lady'?'opacity-40':''}`}>
+                          <input type="checkbox" checked={newPlayer.isSenior} onChange={e=>setNewPlayer({...newPlayer, isSenior:e.target.checked})} disabled={newPlayer.gender==='Lady'} className="rounded w-5 h-5 text-emerald-600 focus:ring-emerald-500" /> <span className="font-bold text-sm">Senior</span>
+                        </label>
+                    </div>
+                    <button type="submit" className="w-full md:w-auto bg-emerald-700 text-white px-8 py-3 rounded-lg font-bold shadow hover:bg-emerald-800">Add Player</button>
                   </form>
                 </div>
 
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden relative border border-gray-300">
-                  <div className="overflow-auto max-h-[600px] relative">
+                  <div className="overflow-auto max-h-[600px] relative hide-scroll">
                     <table className="w-full text-center border-collapse">
                       <thead className="sticky top-0 z-40 bg-gray-100 shadow-sm">
                         <tr className="bg-emerald-900 text-white select-none">
-                          <th onClick={() => handleAdminSort('name')} className="sticky left-0 z-50 bg-emerald-900 p-3 min-w-[200px] text-left border-r border-emerald-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] cursor-pointer hover:bg-emerald-800 transition-colors">
+                          <th onClick={() => handleAdminSort('name')} className="sticky left-0 z-50 bg-emerald-900 p-2 md:p-3 min-w-[140px] md:min-w-[200px] text-left border-r border-emerald-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] cursor-pointer hover:bg-emerald-800 transition-colors whitespace-nowrap text-xs md:text-sm">
                             Player {renderSortIcon('name')}
                           </th>
                           {event.pars.map((_, i) => (
-                            <th key={i} onClick={() => handleAdminSort(`H${i+1}`)} className="p-2 border-r border-emerald-700 min-w-[45px] text-[11px] cursor-pointer hover:bg-emerald-800 transition-colors">
+                            <th key={i} onClick={() => handleAdminSort(`H${i+1}`)} className="p-1 md:p-2 border-r border-emerald-700 min-w-[40px] md:min-w-[45px] text-[10px] md:text-[11px] cursor-pointer hover:bg-emerald-800 transition-colors">
                               H{i+1} {renderSortIcon(`H${i+1}`)}
                             </th>
                           ))}
-                          <th onClick={() => handleAdminSort('tot')} className="p-3 font-bold min-w-[60px] cursor-pointer hover:bg-emerald-800 transition-colors">
+                          <th onClick={() => handleAdminSort('tot')} className="p-2 md:p-3 font-bold min-w-[50px] md:min-w-[60px] cursor-pointer hover:bg-emerald-800 transition-colors text-xs md:text-sm">
                             TOT {renderSortIcon('tot')}
                           </th>
                         </tr>
-                        <tr className="bg-gray-200 text-emerald-900 text-xs border-b border-gray-300">
+                        <tr className="bg-gray-200 text-emerald-900 text-[10px] md:text-xs border-b border-gray-300">
                           <th className="sticky left-0 z-50 bg-gray-200 p-2 text-right pr-4 font-bold border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Par</th>
-                          {event.pars.map((par, i) => <th key={i} className="p-2 border-r border-gray-300 font-bold">{par}</th>)}
+                          {event.pars.map((par, i) => <th key={i} className="p-1 md:p-2 border-r border-gray-300 font-bold">{par}</th>)}
                           <th className="p-2 font-bold">{totalPar}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {adminPlayers.map(p => (
                           <tr key={p.id} className="border-b border-gray-200 hover:bg-emerald-50 group">
-                            <td className="sticky left-0 z-20 bg-white p-3 border-r flex justify-between items-center shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
-                              <div className="truncate font-bold text-emerald-900 w-32 text-left flex items-center gap-1" title={p.name}>
+                            <td className="sticky left-0 z-20 bg-white p-2 md:p-3 border-r flex justify-between items-center shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                              <div className="truncate font-bold text-emerald-900 w-24 md:w-32 text-left flex items-center gap-1 text-xs md:text-sm" title={p.name}>
                                 <span onClick={() => setEditingPlayer(p)} className="cursor-pointer hover:underline text-emerald-800">{p.name}</span>
                                 {p.gender==='Lady'?'🔴':''} {p.isSenior?'🟡':''}
                               </div>
-                              <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => setEditingPlayer(p)} className="text-blue-400 hover:text-blue-600 p-1"><i className="fas fa-edit"></i></button>
-                                <button onClick={() => deletePlayer(p.id)} className="text-red-400 hover:text-red-600 p-1"><i className="fas fa-trash"></i></button>
+                              <div className="flex items-center space-x-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => deletePlayer(p.id)} className="text-red-400 hover:text-red-600 p-1"><i className="fas fa-trash text-xs md:text-sm"></i></button>
                               </div>
                             </td>
                             {p.scores.map((score, idx) => (
-                              <td key={idx} className="p-1 border-r border-gray-100">
+                              <td key={idx} className="p-0.5 md:p-1 border-r border-gray-100">
                                 <input 
                                   type="number" min="1" max="20" 
                                   value={score || ''} 
                                   onChange={(e) => updateScore(p.id, idx, e.target.value)} 
-                                  className={`w-11 h-10 text-center border rounded font-mono font-bold text-sm focus:ring-2 focus:border-emerald-500 outline-none transition-colors ${getScoreColorClass(score, event.pars[idx])}`} 
+                                  className={`w-9 h-8 md:w-11 md:h-10 text-center border rounded font-mono font-bold text-xs md:text-sm focus:ring-2 focus:border-emerald-500 outline-none transition-colors ${getScoreColorClass(score, event.pars[idx])}`} 
                                 />
                               </td>
                             ))}
-                            <td className="p-3 font-bold font-mono text-emerald-800 bg-gray-50 border-l text-lg">{p.grossScore}</td>
+                            <td className="p-2 md:p-3 font-bold font-mono text-emerald-800 bg-gray-50 border-l text-sm md:text-lg">{p.grossScore}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -643,6 +660,7 @@
             )}
           </main>
 
+          {/* Modal Editor */}
           {editingPlayer && (
             <div className="fixed inset-0 glass-modal flex items-center justify-center p-4 z-50">
               <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
@@ -675,44 +693,26 @@
             </div>
           )}
 
-          {showLoginModal && (
-            <div className="fixed inset-0 glass-modal flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-2xl max-w-sm w-full p-8 shadow-2xl relative border-t-8 border-emerald-900 text-center">
-                <button onClick={() => setShowLoginModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i className="fas fa-times text-xl"></i></button>
-                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4"><i className="fas fa-shield-alt text-3xl text-emerald-700"></i></div>
-                <h3 className="text-2xl font-bold text-emerald-900 mb-2">Admin Login</h3>
-                <p className="text-sm text-gray-500 mb-6">กรุณากรอกรหัส PIN เพื่อเข้าสู่โหมดจัดการ</p>
-                <form onSubmit={handleLogin}>
-                  <input type="password" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="• • • •" autoFocus className="w-full text-center text-2xl tracking-widest border border-gray-300 rounded-xl p-4 focus:ring-2 focus:ring-emerald-500 bg-gray-50 mb-6 font-mono outline-none" />
-                  <button type="submit" className="w-full bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-emerald-800 transition-colors">Access System</button>
-                </form>
-              </div>
-            </div>
-          )}
-
+          {/* Modal Scorecard */}
           {viewScorecard && (
-            <div className="fixed inset-0 glass-modal flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl">
-                <div className="flex justify-between items-center mb-6 border-b pb-4">
-                  <h3 className="text-2xl font-bold text-emerald-900">{viewScorecard.name} <span className="text-sm font-normal text-gray-500 ml-2 bg-gray-100 px-3 py-1 rounded-full">Group: {viewScorecard.group}</span></h3>
-                  <button onClick={() => setViewScorecard(null)} className="text-gray-400 hover:text-gray-700 bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center"><i className="fas fa-times"></i></button>
+            <div className="fixed inset-0 glass-modal flex items-center justify-center p-2 md:p-4 z-50">
+              <div className="bg-white rounded-2xl max-w-2xl w-full p-4 md:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4 md:mb-6 border-b pb-3 md:pb-4">
+                  <h3 className="text-lg md:text-2xl font-bold text-emerald-900 truncate pr-2">{viewScorecard.name} <span className="text-xs md:text-sm font-normal text-gray-500 ml-1 bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap">Group: {viewScorecard.group}</span></h3>
+                  <button onClick={() => setViewScorecard(null)} className="text-gray-400 hover:text-gray-700 bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"><i className="fas fa-times"></i></button>
                 </div>
-                <div className="grid grid-cols-4 gap-3 mb-6 text-center">
-                  <div className="bg-gray-50 border p-3 rounded-xl"><p className="text-xs font-bold text-gray-500 mb-1">Gross</p><p className="text-3xl font-mono text-gray-900 font-bold">{viewScorecard.grossScore}</p></div>
-                  <div className="bg-[#fdfbf7] border border-[#d4af37] p-3 rounded-xl"><p className="text-xs font-bold text-[#9c7e1c] mb-1">Stableford Points</p><p className="text-3xl font-mono text-[#d4af37] font-bold">{viewScorecard.stablefordPoints}</p></div>
-                  <div className="bg-gray-50 border p-3 rounded-xl"><p className="text-xs font-bold text-gray-500 mb-1">HCP</p><p className="text-3xl font-mono text-gray-600 font-bold">{viewScorecard.holesPlayed === 18 ? viewScorecard.handicap : '-'}</p></div>
-                  <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl"><p className="text-xs font-bold text-emerald-700 mb-1">NET</p><p className="text-3xl font-mono text-emerald-700 font-bold">{viewScorecard.holesPlayed === 18 ? viewScorecard.netScore : '-'}</p></div>
+                
+                <div className="grid grid-cols-4 gap-1.5 md:gap-3 mb-4 md:mb-6 text-center">
+                  <div className="bg-gray-50 border p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-gray-500 mb-1">Gross</p><p className="text-xl md:text-3xl font-mono text-gray-900 font-bold">{viewScorecard.grossScore}</p></div>
+                  <div className="bg-[#fdfbf7] border border-[#d4af37] p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-[#9c7e1c] mb-1">Stableford</p><p className="text-xl md:text-3xl font-mono text-[#d4af37] font-bold">{viewScorecard.stablefordPoints}</p></div>
+                  <div className="bg-gray-50 border p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-gray-500 mb-1">HCP</p><p className="text-xl md:text-3xl font-mono text-gray-600 font-bold">{viewScorecard.holesPlayed === 18 ? viewScorecard.handicap : '-'}</p></div>
+                  <div className="bg-emerald-50 border border-emerald-200 p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-emerald-700 mb-1">NET</p><p className="text-xl md:text-3xl font-mono text-emerald-700 font-bold">{viewScorecard.holesPlayed === 18 ? viewScorecard.netScore : '-'}</p></div>
                 </div>
-                <div className="overflow-x-auto rounded-xl border">
-                  <table className="w-full text-center text-sm border-collapse">
-                    <tbody>
-                      <tr className="bg-emerald-900 text-white"><td className="p-2 border border-emerald-800 font-bold">Hole</td>{event.pars.map((_,i) => <td key={i} className="p-2 border border-emerald-800 w-8">{i+1}</td>)}</tr>
-                      <tr className="bg-gray-100 font-bold text-emerald-900"><td className="p-2 border border-gray-300">Par</td>{event.pars.map((par, i) => <td key={i} className="p-2 border border-gray-300">{par}</td>)}</tr>
-                      <tr><td className="p-2 border border-gray-200 font-bold">Score</td>{viewScorecard.scores.map((score, i) => <td key={i} className={`p-2 border border-gray-200 font-mono font-bold text-base ${score>0 ? (score<event.pars[i] ? 'text-red-600 bg-red-50' : score>event.pars[i] ? 'text-blue-600 bg-blue-50' : '') : ''}`}>{score || '-'}</td>)}</tr>
-                      <tr className="bg-[#fdfbf7]"><td className="p-2 border border-[#d4af37]/30 font-bold text-[#9c7e1c] text-xs">Pts</td>{viewScorecard.scores.map((score, i) => <td key={i} className="p-2 border border-[#d4af37]/30 font-mono font-bold text-[#d4af37] text-sm">{score>0 ? getStablefordPoints(score, event.pars[i]) : '-'}</td>)}</tr>
-                    </tbody>
-                  </table>
-                </div>
+
+                {/* แยก 18 หลุม เป็น Front 9 และ Back 9 */}
+                {renderNineHoles(0, 9, 'Front 9', event.pars)}
+                {renderNineHoles(9, 18, 'Back 9', event.pars)}
+                
               </div>
             </div>
           )}
