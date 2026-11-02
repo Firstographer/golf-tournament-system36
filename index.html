@@ -135,7 +135,8 @@
       const [adminSort, setAdminSort] = useState({ key: 'default', direction: 'asc' });
 
       const [mockupDate, setMockupDate] = useState('2026-11-01');
-      const [adminViewMode, setAdminViewMode] = useState('entry');
+      // ตั้งค่าให้เปิดมาเจอ Leaderboard เสมอ แม้ตอนล็อกอินเสร็จ
+      const [adminViewMode, setAdminViewMode] = useState('leaderboard');
       const [editingPlayer, setEditingPlayer] = useState(null);
 
       useEffect(() => {
@@ -483,8 +484,7 @@
                     <table className="w-full text-center border-collapse">
                       <thead className="sticky top-0 z-40 bg-gray-100 shadow-sm">
                         <tr className="bg-emerald-900 text-white select-none">
-                          {/* ตรึง Player header ให้อยู่มุมซ้ายบนสุดด้วย z-50 และ left-0 */}
-                          <th onClick={() => setAdminSort({ key: 'name', direction: adminSort.key==='name' && adminSort.direction==='asc' ? 'desc' : 'asc' })} className="sticky left-0 z-50 bg-emerald-900 p-2 md:p-3 min-w-[200px] md:min-w-[240px] text-left border-r border-emerald-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] cursor-pointer hover:bg-emerald-800 whitespace-nowrap text-xs md:text-sm">
+                          <th onClick={() => setAdminSort({ key: 'name', direction: adminSort.key==='name' && adminSort.direction==='asc' ? 'desc' : 'asc' })} className="sticky left-0 top-0 z-50 bg-emerald-900 p-2 md:p-3 min-w-[220px] md:min-w-[280px] text-left border-r border-emerald-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] cursor-pointer hover:bg-emerald-800 whitespace-nowrap text-xs md:text-sm">
                             Player
                           </th>
                           {event.pars.map((_, i) => (
@@ -493,8 +493,7 @@
                           <th className="p-2 md:p-3 font-bold min-w-[50px] md:min-w-[60px] text-xs md:text-sm">TOT</th>
                         </tr>
                         <tr className="bg-gray-200 text-emerald-900 text-[10px] md:text-xs border-b border-gray-300">
-                          {/* ตรึง Par header แถวที่สองฝั่งซ้ายด้วย z-30 และ left-0 */}
-                          <th className="sticky left-0 z-30 bg-gray-200 p-2 text-right pr-4 font-bold border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Par</th>
+                          <th className="sticky left-0 z-50 bg-gray-200 p-2 text-right pr-4 font-bold border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Par</th>
                           {event.pars.map((par, i) => <th key={i} className="p-1 md:p-2 border-r border-gray-300 font-bold">{par}</th>)}
                           <th className="p-2 font-bold">{totalPar}</th>
                         </tr>
@@ -502,14 +501,16 @@
                       <tbody>
                         {adminPlayers.map(p => (
                           <tr key={p.id} className="border-b border-gray-200 hover:bg-emerald-50 group">
-                            {/* ตรึงคอลัมน์ชื่อผู้เล่นฝั่งซ้ายด้วย z-20 และ left-0 ให้เลื่อนตามแนวตั้งอย่างเดียว */}
-                            <td className="sticky left-0 z-20 bg-white p-2 md:p-3 border-r flex items-center justify-between shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[200px] md:min-w-[240px]">
-                              <div className="flex items-center gap-1 overflow-hidden flex-grow mr-1">
-                                <span onClick={() => setEditingPlayer(p)} className="cursor-pointer hover:underline text-emerald-800 font-bold text-xs md:text-sm truncate" title={p.name}>{p.name}</span>
-                                {p.gender === 'Lady' && <span className="bg-rose-100 text-rose-700 text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-bold">Lady</span>}
-                                {p.isSenior && <span className="bg-amber-100 text-amber-700 text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-bold">Senior</span>}
+                            {/* ถอด flex ออกจากแท็ก td โดยตรง เพื่อแก้บัค Safari Sticky Cell แล้วย้ายการเรียง Layout ไปไว้ใน div ย่อยแทน */}
+                            <td className="sticky left-0 z-20 bg-white p-2 md:p-3 border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[220px] md:min-w-[280px]">
+                              <div className="flex items-center justify-between w-full h-full">
+                                <div className="flex items-center gap-1.5 overflow-hidden flex-grow mr-2">
+                                  <span onClick={() => setEditingPlayer(p)} className="cursor-pointer hover:underline text-emerald-800 font-bold text-xs md:text-sm truncate" title={p.name}>{p.name}</span>
+                                  {p.gender === 'Lady' && <span className="bg-rose-100 text-rose-700 text-[9px] md:text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-bold">Lady</span>}
+                                  {p.isSenior && <span className="bg-amber-100 text-amber-700 text-[9px] md:text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-bold">Senior</span>}
+                                </div>
+                                <button onClick={() => {if(window.confirm('Delete Player?')) db.ref(`events/${currentEventId}/players/${p.id}`).remove()}} className="text-red-400 hover:text-red-600 p-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"><i className="fas fa-trash text-xs md:text-sm"></i></button>
                               </div>
-                              <button onClick={() => {if(window.confirm('Delete Player?')) db.ref(`events/${currentEventId}/players/${p.id}`).remove()}} className="text-red-400 hover:text-red-600 p-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"><i className="fas fa-trash text-xs md:text-sm"></i></button>
                             </td>
                             {p.scores.map((score, idx) => (
                               <td key={idx} className="p-0.5 md:p-1 border-r border-gray-100">
