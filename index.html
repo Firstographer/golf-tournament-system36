@@ -2481,12 +2481,10 @@
       const [showCreateModal, setShowCreateModal] = useState(false);
       const [showRulesModal, setShowRulesModal] = useState(false);
 
-      // แยก Event Name กับ Course Name ออกจากกัน
       const [newEventData, setNewEventData] = useState({ eventName: '', courseName: '', date: '', pars: Array(18).fill(4), rules: { ...DEFAULT_RULES } });
       const [isCustomCourse, setIsCustomCourse] = useState(false);
       const [editingRules, setEditingRules] = useState(null);
 
-      // State สำหรับค้นหาสนามกอล์ฟ
       const [courseSearch, setCourseSearch] = useState('');
       const [selectedProvinceFilter, setSelectedProvinceFilter] = useState('ALL');
 
@@ -2528,29 +2526,29 @@
       };
 
       const handleSelectCoursePreset = (course) => {
-        setIsCustomCourse(false); // ล็อกช่องพิมพ์ชื่อสนามเมื่อเลือกจาก Database
+        setIsCustomCourse(false); 
         const pars = getCoursePars(course);
+        // FORCE UPDATE ชื่อ Event ให้ตรงกับชื่อสนามใหม่ทุกครั้งที่มีการเปลี่ยนสนาม
         setNewEventData(prev => ({
           ...prev,
           courseName: course.name,
-          eventName: prev.eventName || course.name, // Auto-fill ชื่อ Event ถ้ายังไม่ได้กรอก
+          eventName: course.name, 
           pars: [...pars]
         }));
       };
 
       const enableCustomCourse = () => {
-        setIsCustomCourse(true); // ปลดล็อกให้พิมพ์ชื่อสนามเอง
+        setIsCustomCourse(true);
         setCourseSearch('');
         setNewEventData(prev => ({
           ...prev,
           courseName: '',
-          pars: Array(18).fill(4) // รีเซ็ต Par เป็น 4
+          pars: Array(18).fill(4)
         }));
       };
 
       const handleCreateEvent = (e) => {
         e.preventDefault();
-        // Fallback name ป้องกัน error สำหรับการกรอกข้อมูลไม่ครบ
         const finalEventName = newEventData.eventName || newEventData.courseName || 'Unnamed Event';
         const finalCourseName = newEventData.courseName || 'Unknown Course';
 
@@ -2567,8 +2565,8 @@
         const newEventRef = db.ref('events').push();
         newEventRef.set({
           id: newEventRef.key, 
-          name: finalEventName, // บันทึกชื่อ Event
-          courseName: finalCourseName, // บันทึกชื่อสนามกอล์ฟ
+          name: finalEventName,
+          courseName: finalCourseName, 
           date: newEventData.date, 
           pars: newEventData.pars, 
           rules: finalRules, 
@@ -2611,8 +2609,8 @@
 
         newEventRef.set({
           id: newEventRef.key, 
-          name: 'การแข่งขันประจำเดือน (Mockup Event)', // Event Name
-          courseName: 'Gassan Legacy Golf Club', // Course Name
+          name: 'การแข่งขันประจำเดือน (Mockup Event)',
+          courseName: 'Gassan Legacy Golf Club',
           date: mockupDate, 
           pars: pars, 
           rules: { ...DEFAULT_RULES }, 
@@ -2666,14 +2664,13 @@
         return rankStr;
       };
 
+      // ฟังก์ชัน Render Scorecard (ออกแบบใหม่เพื่อการแสดงผลบน Mobile 100% ใช้งาน table-fixed และ % width)
       const renderNineHoles = (startIndex, endIndex, title, eventPars, eventRules) => {
         const slicedPars = eventPars.slice(startIndex, endIndex);
         const slicedScores = viewScorecard.scores.slice(startIndex, endIndex);
 
         const parTotal = slicedPars.reduce((a, b) => a + (parseInt(b) || 0), 0);
-        
-        let scoreTotal = 0;
-        let ptsTotal = 0;
+        let scoreTotal = 0; let ptsTotal = 0;
 
         slicedScores.forEach((score, i) => {
           if (score > 0) {
@@ -2683,28 +2680,32 @@
         });
 
         return (
-          <div className="overflow-x-auto hide-scroll rounded-xl border mb-4 shadow-sm">
-            <table className="w-full text-center text-xs md:text-sm border-collapse min-w-max">
+          <div className="rounded-xl border mb-3 md:mb-4 shadow-sm overflow-hidden bg-white">
+            <table className="w-full text-center border-collapse table-fixed">
               <tbody>
+                {/* แถว Header - เลขหลุม */}
                 <tr className="bg-emerald-900 text-white">
-                  <td className="p-1.5 md:p-2 border border-emerald-800 font-bold whitespace-nowrap px-3">{title}</td>
-                  {slicedPars.map((_,i) => <td key={i} className="p-1.5 md:p-2 border border-emerald-800 w-8 md:w-10">{startIndex + i + 1}</td>)}
-                  <td className="p-1.5 md:p-2 border border-emerald-800 font-bold w-12 md:w-14 bg-emerald-950 text-[#d4af37]">TOT</td>
+                  <td className="py-1 md:py-2 border border-emerald-800 font-bold text-[9px] md:text-sm w-[18%] md:w-[15%] leading-tight">{title}</td>
+                  {slicedPars.map((_,i) => <td key={i} className="py-1 md:py-2 border border-emerald-800 w-[7.5%] md:w-[8%] text-[10px] md:text-sm">{startIndex + i + 1}</td>)}
+                  <td className="py-1 md:py-2 border border-emerald-800 font-bold w-[14.5%] md:w-[13%] bg-emerald-950 text-[#d4af37] text-[10px] md:text-sm">TOT</td>
                 </tr>
+                {/* แถว Par */}
                 <tr className="bg-gray-100 font-bold text-emerald-900">
-                  <td className="p-1.5 md:p-2 border border-gray-300 whitespace-nowrap">Par</td>
-                  {slicedPars.map((par, i) => <td key={i} className="p-1.5 md:p-2 border border-gray-300">{par}</td>)}
-                  <td className="p-1.5 md:p-2 border border-gray-300 font-bold bg-gray-200">{parTotal}</td>
+                  <td className="py-1 md:py-2 border border-gray-300 text-[9px] md:text-sm">Par</td>
+                  {slicedPars.map((par, i) => <td key={i} className="py-1 md:py-2 border border-gray-300 text-[11px] md:text-sm">{par}</td>)}
+                  <td className="py-1 md:py-2 border border-gray-300 font-bold bg-gray-200 text-[11px] md:text-sm">{parTotal}</td>
                 </tr>
+                {/* แถว Score */}
                 <tr>
-                  <td className="p-1.5 md:p-2 border border-gray-200 font-bold whitespace-nowrap">Score</td>
-                  {slicedScores.map((score, i) => <td key={i} className={`p-1.5 md:p-2 border border-gray-200 font-mono font-bold text-sm md:text-base ${score>0 ? (score<slicedPars[i] ? 'text-red-600 bg-red-50' : score>slicedPars[i] ? 'text-blue-600 bg-blue-50' : '') : ''}`}>{score || '-'}</td>)}
-                  <td className="p-1.5 md:p-2 border border-gray-200 font-mono font-bold text-sm md:text-base bg-emerald-100/70 text-emerald-950">{scoreTotal > 0 ? scoreTotal : '-'}</td>
+                  <td className="py-1 md:py-2 border border-gray-200 font-bold text-[9px] md:text-sm">Score</td>
+                  {slicedScores.map((score, i) => <td key={i} className={`py-1 md:py-2 border border-gray-200 font-mono font-bold text-[11px] md:text-base ${score>0 ? (score<slicedPars[i] ? 'text-red-600 bg-red-50' : score>slicedPars[i] ? 'text-blue-600 bg-blue-50' : '') : ''}`}>{score || '-'}</td>)}
+                  <td className="py-1 md:py-2 border border-gray-200 font-mono font-bold text-[11px] md:text-base bg-emerald-100/70 text-emerald-950">{scoreTotal > 0 ? scoreTotal : '-'}</td>
                 </tr>
+                {/* แถว Stableford */}
                 <tr className="bg-[#fdfbf7]">
-                  <td className="p-1.5 md:p-2 border border-[#d4af37]/30 font-bold text-[#9c7e1c] text-[10px] md:text-xs whitespace-nowrap">Stableford</td>
-                  {slicedScores.map((score, i) => <td key={i} className="p-1.5 md:p-2 border border-[#d4af37]/30 font-mono font-bold text-[#d4af37] text-xs md:text-sm">{score>0 ? getStablefordPoints(score, slicedPars[i], eventRules) : '-'}</td>)}
-                  <td className="p-1.5 md:p-2 border border-[#d4af37]/40 font-mono font-extrabold text-[#9c7e1c] text-xs md:text-sm bg-amber-200/80">{ptsTotal}</td>
+                  <td className="py-1 md:py-2 border border-[#d4af37]/30 font-bold text-[#9c7e1c] text-[8px] md:text-xs tracking-tight">Stableford</td>
+                  {slicedScores.map((score, i) => <td key={i} className="py-1 md:py-2 border border-[#d4af37]/30 font-mono font-bold text-[#d4af37] text-[11px] md:text-sm">{score>0 ? getStablefordPoints(score, slicedPars[i], eventRules) : '-'}</td>)}
+                  <td className="py-1 md:py-2 border border-[#d4af37]/40 font-mono font-extrabold text-[#9c7e1c] text-[11px] md:text-sm bg-amber-200/80">{ptsTotal}</td>
                 </tr>
               </tbody>
             </table>
@@ -2767,7 +2768,6 @@
               
               <div className="flex-grow text-center mx-2 overflow-hidden">
                 {currentEventId ? (
-                  // แสดงชื่อ Event (รายการแข่งขัน) เป็น Title หลักตามที่ขอ
                   <h1 className="text-lg md:text-2xl font-bold text-[#fdfbf7] truncate">{event.name}</h1>
                 ) : (
                   <div>
@@ -2818,7 +2818,6 @@
                     <div key={e.id} className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow flex flex-col">
                       <div className="bg-emerald-900 p-4 border-b border-[#d4af37]">
                         <h3 className="text-lg font-bold text-white truncate" title={e.name}>{e.name}</h3>
-                        {/* แสดงชื่อสนามกอล์ฟเสริม ถ้ามีการบันทึกแยกไว้ */}
                         {e.courseName && e.courseName !== e.name && (
                           <p className="text-xs text-emerald-300 truncate mt-1"><i className="fas fa-map-marker-alt mr-1"></i>{e.courseName}</p>
                         )}
@@ -3223,7 +3222,7 @@
 
           {viewScorecard && (
             <div className="fixed inset-0 glass-modal flex items-center justify-center p-2 md:p-4 z-[960]">
-              <div id="scorecard-capture" className="bg-white rounded-2xl w-full max-w-2xl p-4 md:p-6 shadow-2xl max-h-[90vh] overflow-y-auto hide-scroll relative">
+              <div id="scorecard-capture" className="bg-white rounded-2xl w-full max-w-2xl p-3 md:p-6 shadow-2xl max-h-[90vh] overflow-y-auto hide-scroll relative">
                 
                 <table className="w-full border-collapse mb-4 md:mb-6 border-b pb-2">
                   <tbody>
@@ -3235,7 +3234,6 @@
                               <td className="p-0 border-0 pr-2 align-middle">
                                 <span className="inline-block bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md shadow-sm whitespace-nowrap">
                                   <i className="fas fa-flag mr-1.5 text-[#d4af37]"></i>
-                                  {/* นำ event.courseName มาแสดงผล หากไม่มีให้ใช้ event.name แทน */}
                                   <span className="text-[10px] md:text-xs font-bold text-emerald-800">{event.courseName || event.name}</span>
                                 </span>
                               </td>
