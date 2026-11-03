@@ -120,6 +120,10 @@
       if (!target) return;
       
       const originalStyle = target.style.cssText;
+      const originalWidth = target.style.width;
+      
+      target.style.width = target.offsetWidth + 'px'; 
+      target.style.maxWidth = 'none'; 
       target.style.background = '#ffffff'; 
       target.style.boxShadow = 'none';
       
@@ -129,6 +133,8 @@
         useCORS: true 
       }).then(canvas => {
         target.style.cssText = originalStyle;
+        target.style.width = originalWidth;
+
         const link = document.createElement('a'); 
         link.download = `${fileName}.png`;
         link.href = canvas.toDataURL('image/png'); 
@@ -289,9 +295,23 @@
         return rankStr;
       };
 
+      // ฟังก์ชันเรนเดอร์ตาราง 9 หลุม พร้อมปรับคำว่า Stableford และไฮไลต์คอลัมน์ TOT ให้เข้มเด่นชัด
       const renderNineHoles = (startIndex, endIndex, title, eventPars, eventRules) => {
         const slicedPars = eventPars.slice(startIndex, endIndex);
         const slicedScores = viewScorecard.scores.slice(startIndex, endIndex);
+
+        const parTotal = slicedPars.reduce((a, b) => a + (parseInt(b) || 0), 0);
+        
+        let scoreTotal = 0;
+        let ptsTotal = 0;
+
+        slicedScores.forEach((score, i) => {
+          if (score > 0) {
+            scoreTotal += parseInt(score);
+            ptsTotal += getStablefordPoints(parseInt(score), slicedPars[i], eventRules);
+          }
+        });
+
         return (
           <div className="overflow-x-auto hide-scroll rounded-xl border mb-4 shadow-sm">
             <table className="w-full text-center text-xs md:text-sm border-collapse min-w-max">
@@ -299,18 +319,23 @@
                 <tr className="bg-emerald-900 text-white">
                   <td className="p-1.5 md:p-2 border border-emerald-800 font-bold whitespace-nowrap px-3">{title}</td>
                   {slicedPars.map((_,i) => <td key={i} className="p-1.5 md:p-2 border border-emerald-800 w-8 md:w-10">{startIndex + i + 1}</td>)}
+                  <td className="p-1.5 md:p-2 border border-emerald-800 font-bold w-12 md:w-14 bg-emerald-950 text-[#d4af37]">TOT</td>
                 </tr>
                 <tr className="bg-gray-100 font-bold text-emerald-900">
                   <td className="p-1.5 md:p-2 border border-gray-300 whitespace-nowrap">Par</td>
                   {slicedPars.map((par, i) => <td key={i} className="p-1.5 md:p-2 border border-gray-300">{par}</td>)}
+                  <td className="p-1.5 md:p-2 border border-gray-300 font-bold bg-gray-200">{parTotal}</td>
                 </tr>
                 <tr>
                   <td className="p-1.5 md:p-2 border border-gray-200 font-bold whitespace-nowrap">Score</td>
                   {slicedScores.map((score, i) => <td key={i} className={`p-1.5 md:p-2 border border-gray-200 font-mono font-bold text-sm md:text-base ${score>0 ? (score<slicedPars[i] ? 'text-red-600 bg-red-50' : score>slicedPars[i] ? 'text-blue-600 bg-blue-50' : '') : ''}`}>{score || '-'}</td>)}
+                  <td className="p-1.5 md:p-2 border border-gray-200 font-mono font-bold text-sm md:text-base bg-emerald-100/70 text-emerald-950">{scoreTotal > 0 ? scoreTotal : '-'}</td>
                 </tr>
                 <tr className="bg-[#fdfbf7]">
-                  <td className="p-1.5 md:p-2 border border-[#d4af37]/30 font-bold text-[#9c7e1c] text-[10px] md:text-xs whitespace-nowrap">Pts</td>
+                  {/* เปลี่ยนคำว่า Pts เป็น Stableford ตามความต้องการ */}
+                  <td className="p-1.5 md:p-2 border border-[#d4af37]/30 font-bold text-[#9c7e1c] text-[10px] md:text-xs whitespace-nowrap">Stableford</td>
                   {slicedScores.map((score, i) => <td key={i} className="p-1.5 md:p-2 border border-[#d4af37]/30 font-mono font-bold text-[#d4af37] text-xs md:text-sm">{score>0 ? getStablefordPoints(score, slicedPars[i], eventRules) : '-'}</td>)}
+                  <td className="p-1.5 md:p-2 border border-[#d4af37]/40 font-mono font-extrabold text-[#9c7e1c] text-xs md:text-sm bg-amber-200/80">{ptsTotal}</td>
                 </tr>
               </tbody>
             </table>
@@ -333,12 +358,10 @@
         if (activeTab !== 'ALL') displayPlayers = displayPlayers.filter(p => p.group === activeTab);
         displayPlayers.sort(comparePlayers);
 
-        // จัดการลอจิกข้อความ Subtitle ใต้ชื่อ Leaderboard
         if (activeTab === 'ALL') groupSubtitle = "System 36 Format";
         else if (activeTab === 'A') groupSubtitle = "Handicap 0 - 9";
         else if (activeTab === 'B') groupSubtitle = "Handicap 10 - 18";
         else if (activeTab === 'C') groupSubtitle = "Handicap 19+";
-        // สำหรับ Senior และ Lady ให้เป็นค่าว่าง ("") เพื่อซ่อนไปเลยตามที่ต้องการ
 
         let currentRankNum = 1;
         rankedPlayers = displayPlayers.map((p, i) => {
@@ -452,7 +475,6 @@
                   <div className="bg-emerald-900 text-white p-3 md:p-4 text-center border-b border-[#d4af37] relative">
                     <h2 className="text-lg md:text-xl font-bold">{activeTab === 'ALL' ? 'Leaderboard - Overall' : activeTab === 'Senior' || activeTab === 'Lady' ? `Leaderboard - ${activeTab}` : `Leaderboard - Group ${activeTab}`}</h2>
                     
-                    {/* เรนเดอร์ Subtitle เฉพาะเมื่อมีข้อความเท่านั้น (แท็บ Senior, Lady จะไม่ถูกแสดงบรรทัดนี้) */}
                     {groupSubtitle && (
                       <p className="text-xs md:text-sm text-emerald-200 mb-1">{groupSubtitle}</p>
                     )}
@@ -482,9 +504,17 @@
                           <tr key={p.id} onClick={() => setViewScorecard(p)} className="border-b border-gray-100 hover:bg-emerald-50 cursor-pointer">
                             <td className="p-3 md:p-4 text-center font-bold whitespace-nowrap">{p.rankStr === '-' ? '-' : getRankIcon(p.rankNum, p.rankStr)}</td>
                             <td className="p-3 md:p-4 font-bold text-emerald-900 whitespace-nowrap">
-                              {p.name} 
-                              {p.gender === 'Lady' && <span className="inline-block bg-rose-100 text-rose-700 text-[10px] md:text-xs px-2 py-0.5 rounded-full ml-1">Lady</span>} 
-                              {p.isSenior && <span className="inline-block bg-amber-100 text-amber-700 text-[10px] md:text-xs px-2 py-0.5 rounded-full ml-1">Senior</span>}
+                              <table className="border-collapse inline-block align-middle">
+                                <tbody>
+                                  <tr>
+                                    <td className="p-0 border-0 font-bold text-emerald-900 pr-2">{p.name}</td>
+                                    <td className="p-0 border-0">
+                                      {p.gender === 'Lady' && <span className="inline-block bg-rose-100 text-rose-700 text-[10px] md:text-xs px-2 py-0.5 rounded-full font-bold">Lady</span>} 
+                                      {p.isSenior && <span className="inline-block bg-amber-100 text-amber-700 text-[10px] md:text-xs px-2 py-0.5 rounded-full font-bold">Senior</span>}
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
                             </td>
                             <td className="p-3 md:p-4 text-center font-bold text-gray-600 whitespace-nowrap">{p.group}</td>
                             <td className="p-3 md:p-4 text-center font-mono font-semibold text-gray-900 whitespace-nowrap">{p.grossScore || '-'}</td>
@@ -744,34 +774,62 @@
 
           {viewScorecard && (
             <div className="fixed inset-0 glass-modal flex items-center justify-center p-2 md:p-4 z-[960]">
-              <div id="scorecard-capture" className="bg-white rounded-2xl max-w-2xl w-full p-4 md:p-6 shadow-2xl max-h-[90vh] overflow-y-auto hide-scroll relative">
+              <div id="scorecard-capture" className="bg-white rounded-2xl w-full max-w-2xl p-4 md:p-6 shadow-2xl max-h-[90vh] overflow-y-auto hide-scroll relative">
                 
-                <div className="flex justify-between items-start mb-4 md:mb-6 border-b pb-3 md:pb-4">
-                  <div className="flex-grow pr-2">
-                    <div className="flex items-center flex-wrap gap-2 mb-1.5">
-                      <span className="text-[10px] md:text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md shadow-sm">
-                        <i className="fas fa-flag mr-1 text-[#d4af37]"></i>{event.name}
-                      </span>
-                      <span className="text-[10px] md:text-xs text-gray-500 font-medium">
-                        <i className="fas fa-calendar-alt mr-1 text-emerald-600"></i>{event.date ? event.date.split('-').reverse().join('/') : ''}
-                      </span>
-                    </div>
-                    
-                    <h3 className="text-lg md:text-2xl font-bold text-emerald-900">
-                      {viewScorecard.name} 
-                      <span className="inline-block text-xs md:text-sm font-normal text-gray-500 ml-2 bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap">Group: {viewScorecard.group}</span>
-                    </h3>
-                  </div>
-                  
-                  <div className="flex gap-2 flex-shrink-0" data-html2canvas-ignore>
-                    <button onClick={() => captureImage('scorecard-capture', `${viewScorecard.name}-${event.name}`)} className="text-emerald-700 hover:text-white bg-emerald-100 hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold transition-colors flex items-center shadow-sm">
-                      <i className="fas fa-download mr-1"></i> <span className="hidden md:inline">Save</span>
-                    </button>
-                    <button onClick={() => setViewScorecard(null)} className="text-gray-400 hover:text-gray-700 bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors">
-                      <i className="fas fa-times"></i>
-                    </button>
-                  </div>
-                </div>
+                <table className="w-full border-collapse mb-4 md:mb-6 border-b pb-2">
+                  <tbody>
+                    <tr>
+                      <td className="text-left border-0 pb-3 align-top">
+                        <table className="border-collapse mb-2">
+                          <tbody>
+                            <tr>
+                              <td className="p-0 border-0 pr-2 align-middle">
+                                <span className="inline-block bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md shadow-sm whitespace-nowrap">
+                                  <i className="fas fa-flag mr-1.5 text-[#d4af37]"></i>
+                                  <span className="text-[10px] md:text-xs font-bold text-emerald-800">{event.name}</span>
+                                </span>
+                              </td>
+                              <td className="p-0 border-0 align-middle">
+                                <span className="inline-block whitespace-nowrap">
+                                  <i className="fas fa-calendar-alt mr-1.5 text-emerald-600"></i>
+                                  <span className="text-[10px] md:text-xs text-gray-500 font-medium">{event.date ? event.date.split('-').reverse().join('/') : ''}</span>
+                                </span>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        
+                        <table className="border-collapse">
+                          <tbody>
+                            <tr>
+                              <td className="p-0 border-0 align-middle">
+                                <span className="text-lg md:text-2xl font-bold text-emerald-900 block">
+                                  {viewScorecard.name}
+                                </span>
+                              </td>
+                              <td className="p-0 border-0 align-middle pl-2">
+                                <span className="inline-block text-xs md:text-sm font-normal text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                                  Group: {viewScorecard.group}
+                                </span>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                      
+                      <td className="text-right border-0 align-top w-20" data-html2canvas-ignore>
+                        <div className="flex gap-2 justify-end">
+                          <button onClick={() => captureImage('scorecard-capture', `${viewScorecard.name}-${event.name}`)} className="text-emerald-700 hover:text-white bg-emerald-100 hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold transition-colors flex items-center shadow-sm">
+                            <i className="fas fa-download mr-1"></i>
+                          </button>
+                          <button onClick={() => setViewScorecard(null)} className="text-gray-400 hover:text-gray-700 bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                            <i className="fas fa-times"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
 
                 <div className="grid grid-cols-4 gap-1.5 md:gap-3 mb-4 md:mb-6 text-center">
                   <div className="bg-gray-50 border p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-gray-500 mb-1">Gross</p><p className="text-xl md:text-3xl font-mono text-gray-900 font-bold">{viewScorecard.grossScore}</p></div>
