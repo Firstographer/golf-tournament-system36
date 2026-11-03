@@ -115,6 +115,30 @@
       return b.stablefordPoints - a.stablefordPoints; 
     };
 
+    const captureImage = (elementId, fileName) => {
+      const target = document.getElementById(elementId);
+      if (!target) return;
+      
+      const originalStyle = target.style.cssText;
+      target.style.background = '#ffffff'; 
+      target.style.boxShadow = 'none';
+      
+      html2canvas(target, { 
+        backgroundColor: '#ffffff', 
+        scale: 2, 
+        useCORS: true 
+      }).then(canvas => {
+        target.style.cssText = originalStyle;
+        const link = document.createElement('a'); 
+        link.download = `${fileName}.png`;
+        link.href = canvas.toDataURL('image/png'); 
+        link.click();
+      }).catch(err => { 
+        console.error("Capture failed:", err);
+        target.style.cssText = originalStyle; 
+      });
+    };
+
     function App() {
       const [events, setEvents] = useState({});
       const [currentEventId, setCurrentEventId] = useState(null);
@@ -258,18 +282,6 @@
         });
       };
 
-      const saveImage = (name) => {
-        const target = document.getElementById('leaderboard-capture');
-        if (!target) return;
-        const originalStyle = target.style.cssText;
-        target.style.background = '#ffffff'; target.style.boxShadow = 'none';
-        html2canvas(target, { backgroundColor: '#ffffff', scale: 2, useCORS: true }).then(canvas => {
-          target.style.cssText = originalStyle;
-          const link = document.createElement('a'); link.download = `${name}-Leaderboard.png`;
-          link.href = canvas.toDataURL('image/png'); link.click();
-        }).catch(() => { target.style.cssText = originalStyle; });
-      };
-
       const getRankIcon = (rankNum, rankStr) => {
         if (rankNum === 1) return <div className="flex items-center justify-center gap-1.5"><i className="fas fa-trophy text-[#d4af37] text-lg md:text-xl drop-shadow-sm"></i><span className="text-xs font-extrabold text-[#d4af37]">{rankStr}</span></div>;
         if (rankNum === 2) return <div className="flex items-center justify-center gap-1.5"><i className="fas fa-trophy text-[#a0a0a0] text-lg md:text-xl drop-shadow-sm"></i><span className="text-xs font-extrabold text-[#909090]">{rankStr}</span></div>;
@@ -308,6 +320,7 @@
 
       const event = currentEventId ? events[currentEventId] : null;
       let displayPlayers = []; let rankedPlayers = []; let adminPlayers = []; let totalPar = 0; let activeRules = DEFAULT_RULES;
+      let groupSubtitle = ""; 
 
       if (event) {
         totalPar = event.pars.reduce((a, b) => a + b, 0);
@@ -319,6 +332,13 @@
         displayPlayers = [...processedPlayers];
         if (activeTab !== 'ALL') displayPlayers = displayPlayers.filter(p => p.group === activeTab);
         displayPlayers.sort(comparePlayers);
+
+        // จัดการลอจิกข้อความ Subtitle ใต้ชื่อ Leaderboard
+        if (activeTab === 'ALL') groupSubtitle = "System 36 Format";
+        else if (activeTab === 'A') groupSubtitle = "Handicap 0 - 9";
+        else if (activeTab === 'B') groupSubtitle = "Handicap 10 - 18";
+        else if (activeTab === 'C') groupSubtitle = "Handicap 19+";
+        // สำหรับ Senior และ Lady ให้เป็นค่าว่าง ("") เพื่อซ่อนไปเลยตามที่ต้องการ
 
         let currentRankNum = 1;
         rankedPlayers = displayPlayers.map((p, i) => {
@@ -428,14 +448,20 @@
                   ))}
                 </div>
                 
-                <div id="leaderboard-capture" className="bg-white rounded-xl shadow-lg overflow-hidden pb-4 border border-gray-200">
+                <div id="leaderboard-capture" className="bg-white rounded-xl shadow-lg overflow-hidden pb-4 border border-gray-200 relative">
                   <div className="bg-emerald-900 text-white p-3 md:p-4 text-center border-b border-[#d4af37] relative">
                     <h2 className="text-lg md:text-xl font-bold">{activeTab === 'ALL' ? 'Leaderboard - Overall' : activeTab === 'Senior' || activeTab === 'Lady' ? `Leaderboard - ${activeTab}` : `Leaderboard - Group ${activeTab}`}</h2>
-                    <p className="text-xs md:text-sm text-emerald-200 mb-1">System 36 Format</p>
-                    <button onClick={() => { setEditingRules(activeRules); setShowRulesModal(true); }} className="mt-2 inline-flex items-center text-[10px] md:text-xs bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 px-3 py-1 rounded-full border border-emerald-700 transition-colors">
+                    
+                    {/* เรนเดอร์ Subtitle เฉพาะเมื่อมีข้อความเท่านั้น (แท็บ Senior, Lady จะไม่ถูกแสดงบรรทัดนี้) */}
+                    {groupSubtitle && (
+                      <p className="text-xs md:text-sm text-emerald-200 mb-1">{groupSubtitle}</p>
+                    )}
+                    
+                    <button data-html2canvas-ignore onClick={() => { setEditingRules(activeRules); setShowRulesModal(true); }} className="mt-2 inline-flex items-center text-[10px] md:text-xs bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 px-3 py-1 rounded-full border border-emerald-700 transition-colors">
                       <i className="fas fa-info-circle mr-1.5"></i> Scoring Rules {isAdmin ? '(Edit)' : ''}
                     </button>
-                    <button onClick={() => saveImage(event.name)} data-html2canvas-ignore className="absolute right-4 bottom-4 bg-emerald-700 text-white px-3 py-1.5 rounded shadow text-[10px] md:text-xs hover:bg-emerald-600"><i className="fas fa-download mr-1"></i>Save Image</button>
+                    
+                    <button onClick={() => captureImage('leaderboard-capture', `${event.name}-Leaderboard-${activeTab}`)} data-html2canvas-ignore className="absolute right-4 bottom-4 bg-emerald-700 text-white px-3 py-1.5 rounded shadow text-[10px] md:text-xs hover:bg-emerald-600"><i className="fas fa-download mr-1"></i>Save Image</button>
                   </div>
                   
                   <div className="overflow-x-auto hide-scroll">
@@ -455,7 +481,11 @@
                         {rankedPlayers.map((p) => (
                           <tr key={p.id} onClick={() => setViewScorecard(p)} className="border-b border-gray-100 hover:bg-emerald-50 cursor-pointer">
                             <td className="p-3 md:p-4 text-center font-bold whitespace-nowrap">{p.rankStr === '-' ? '-' : getRankIcon(p.rankNum, p.rankStr)}</td>
-                            <td className="p-3 md:p-4 font-bold text-emerald-900 whitespace-nowrap">{p.name} {p.gender === 'Lady' && <span className="bg-rose-100 text-rose-700 text-[10px] md:text-xs px-2 py-0.5 rounded-full ml-1">Lady</span>} {p.isSenior && <span className="bg-amber-100 text-amber-700 text-[10px] md:text-xs px-2 py-0.5 rounded-full ml-1">Senior</span>}</td>
+                            <td className="p-3 md:p-4 font-bold text-emerald-900 whitespace-nowrap">
+                              {p.name} 
+                              {p.gender === 'Lady' && <span className="inline-block bg-rose-100 text-rose-700 text-[10px] md:text-xs px-2 py-0.5 rounded-full ml-1">Lady</span>} 
+                              {p.isSenior && <span className="inline-block bg-amber-100 text-amber-700 text-[10px] md:text-xs px-2 py-0.5 rounded-full ml-1">Senior</span>}
+                            </td>
                             <td className="p-3 md:p-4 text-center font-bold text-gray-600 whitespace-nowrap">{p.group}</td>
                             <td className="p-3 md:p-4 text-center font-mono font-semibold text-gray-900 whitespace-nowrap">{p.grossScore || '-'}</td>
                             <td className="p-3 md:p-4 text-center font-mono font-bold text-[#d4af37] whitespace-nowrap">{p.stablefordPoints}</td>
@@ -714,11 +744,35 @@
 
           {viewScorecard && (
             <div className="fixed inset-0 glass-modal flex items-center justify-center p-2 md:p-4 z-[960]">
-              <div className="bg-white rounded-2xl max-w-2xl w-full p-4 md:p-6 shadow-2xl max-h-[90vh] overflow-y-auto hide-scroll">
-                <div className="flex justify-between items-center mb-4 md:mb-6 border-b pb-3 md:pb-4">
-                  <h3 className="text-lg md:text-2xl font-bold text-emerald-900 truncate pr-2">{viewScorecard.name} <span className="text-xs md:text-sm font-normal text-gray-500 ml-1 bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap">Group: {viewScorecard.group}</span></h3>
-                  <button onClick={() => setViewScorecard(null)} className="text-gray-400 hover:text-gray-700 bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"><i className="fas fa-times"></i></button>
+              <div id="scorecard-capture" className="bg-white rounded-2xl max-w-2xl w-full p-4 md:p-6 shadow-2xl max-h-[90vh] overflow-y-auto hide-scroll relative">
+                
+                <div className="flex justify-between items-start mb-4 md:mb-6 border-b pb-3 md:pb-4">
+                  <div className="flex-grow pr-2">
+                    <div className="flex items-center flex-wrap gap-2 mb-1.5">
+                      <span className="text-[10px] md:text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md shadow-sm">
+                        <i className="fas fa-flag mr-1 text-[#d4af37]"></i>{event.name}
+                      </span>
+                      <span className="text-[10px] md:text-xs text-gray-500 font-medium">
+                        <i className="fas fa-calendar-alt mr-1 text-emerald-600"></i>{event.date ? event.date.split('-').reverse().join('/') : ''}
+                      </span>
+                    </div>
+                    
+                    <h3 className="text-lg md:text-2xl font-bold text-emerald-900">
+                      {viewScorecard.name} 
+                      <span className="inline-block text-xs md:text-sm font-normal text-gray-500 ml-2 bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap">Group: {viewScorecard.group}</span>
+                    </h3>
+                  </div>
+                  
+                  <div className="flex gap-2 flex-shrink-0" data-html2canvas-ignore>
+                    <button onClick={() => captureImage('scorecard-capture', `${viewScorecard.name}-${event.name}`)} className="text-emerald-700 hover:text-white bg-emerald-100 hover:bg-emerald-700 px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold transition-colors flex items-center shadow-sm">
+                      <i className="fas fa-download mr-1"></i> <span className="hidden md:inline">Save</span>
+                    </button>
+                    <button onClick={() => setViewScorecard(null)} className="text-gray-400 hover:text-gray-700 bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors">
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </div>
                 </div>
+
                 <div className="grid grid-cols-4 gap-1.5 md:gap-3 mb-4 md:mb-6 text-center">
                   <div className="bg-gray-50 border p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-gray-500 mb-1">Gross</p><p className="text-xl md:text-3xl font-mono text-gray-900 font-bold">{viewScorecard.grossScore}</p></div>
                   <div className="bg-[#fdfbf7] border border-[#d4af37] p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-[#9c7e1c] mb-1">Stableford</p><p className="text-xl md:text-3xl font-mono text-[#d4af37] font-bold">{viewScorecard.stablefordPoints}</p></div>
