@@ -295,7 +295,6 @@
         return rankStr;
       };
 
-      // ฟังก์ชันเรนเดอร์ตาราง 9 หลุม พร้อมปรับคำว่า Stableford และไฮไลต์คอลัมน์ TOT ให้เข้มเด่นชัด
       const renderNineHoles = (startIndex, endIndex, title, eventPars, eventRules) => {
         const slicedPars = eventPars.slice(startIndex, endIndex);
         const slicedScores = viewScorecard.scores.slice(startIndex, endIndex);
@@ -332,7 +331,6 @@
                   <td className="p-1.5 md:p-2 border border-gray-200 font-mono font-bold text-sm md:text-base bg-emerald-100/70 text-emerald-950">{scoreTotal > 0 ? scoreTotal : '-'}</td>
                 </tr>
                 <tr className="bg-[#fdfbf7]">
-                  {/* เปลี่ยนคำว่า Pts เป็น Stableford ตามความต้องการ */}
                   <td className="p-1.5 md:p-2 border border-[#d4af37]/30 font-bold text-[#9c7e1c] text-[10px] md:text-xs whitespace-nowrap">Stableford</td>
                   {slicedScores.map((score, i) => <td key={i} className="p-1.5 md:p-2 border border-[#d4af37]/30 font-mono font-bold text-[#d4af37] text-xs md:text-sm">{score>0 ? getStablefordPoints(score, slicedPars[i], eventRules) : '-'}</td>)}
                   <td className="p-1.5 md:p-2 border border-[#d4af37]/40 font-mono font-extrabold text-[#9c7e1c] text-xs md:text-sm bg-amber-200/80">{ptsTotal}</td>
@@ -661,12 +659,12 @@
                           <label className="block text-[10px] font-bold text-gray-600 mb-1 leading-tight h-6">{label}</label>
                           <input 
                             type="number" 
-                            inputMode="numeric" pattern="[0-9]*" min="0"
+                            inputMode="decimal" pattern="^-?[0-9]*$"
                             value={newEventData.rules[key] === 0 ? 0 : (newEventData.rules[key] || '')} 
                             onFocus={(e) => e.target.select()}
                             onChange={(e) => {
                               const val = e.target.value;
-                              setNewEventData({...newEventData, rules: {...newEventData.rules, [key]: val === '' ? '' : parseInt(val)}});
+                              setNewEventData({...newEventData, rules: {...newEventData.rules, [key]: val === '' || val === '-' ? val : parseInt(val)}});
                             }} 
                             className="w-full text-center border border-gray-300 rounded p-2 font-mono font-bold text-sm bg-white outline-none focus:border-emerald-500" 
                           />
@@ -711,12 +709,12 @@
                         {isAdmin ? (
                           <input 
                             type="number" 
-                            inputMode="numeric" pattern="[0-9]*" min="0"
+                            inputMode="decimal" pattern="^-?[0-9]*$"
                             value={editingRules[item.key] === 0 ? 0 : (editingRules[item.key] || '')} 
                             onFocus={(e) => e.target.select()}
                             onChange={(e) => {
                               const val = e.target.value;
-                              setEditingRules({...editingRules, [item.key]: val === '' ? '' : parseInt(val)});
+                              setEditingRules({...editingRules, [item.key]: val === '' || val === '-' ? val : parseInt(val)});
                             }} 
                             className="w-full text-center border-0 border-b-2 border-[#d4af37] bg-transparent text-[#d4af37] font-bold text-lg md:text-xl font-mono outline-none focus:bg-emerald-950 rounded py-1" 
                           />
