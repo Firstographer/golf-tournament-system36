@@ -2438,22 +2438,22 @@
       return b.stablefordPoints - a.stablefordPoints; 
     };
 
-    // ปรับปรุงฟังก์ชัน Save Image ให้เพิ่ม Padding ด้านล่างและขอบ เพื่อไม่ให้ตัวหนังสือติดขอบจนขาดหาย
+    // ฟังก์ชัน Save Image: ล็อกความกว้างและสัดส่วนภาพ Leaderboard ให้สวยงามเป๊ะทุกตัวอักษร
     const captureImage = (elementId, fileName) => {
       const target = document.getElementById(elementId);
       if (!target) return;
       
-      const originalScrollLeft = target.scrollLeft;
-      target.scrollLeft = 0; 
-
       const originalStyle = target.style.cssText;
-      const targetWidth = Math.max(target.scrollWidth, 750); 
+      const targetWidth = 1000; 
 
       target.style.width = targetWidth + 'px'; 
       target.style.maxWidth = 'none'; 
       target.style.background = '#ffffff'; 
       target.style.boxShadow = 'none';
-      target.style.paddingBottom = '24px'; // เพิ่มพื้นที่ว่างด้านล่างชั่วคราวตอนแคปเจอร์
+      target.style.paddingLeft = '15px'; 
+      target.style.paddingRight = '15px'; 
+      target.style.paddingTop = '15px';
+      target.style.paddingBottom = '30px';
       
       html2canvas(target, { 
         backgroundColor: '#ffffff', 
@@ -2462,7 +2462,6 @@
         windowWidth: targetWidth + 50
       }).then(canvas => {
         target.style.cssText = originalStyle;
-        target.scrollLeft = originalScrollLeft;
 
         const link = document.createElement('a'); 
         link.download = `${fileName}.png`;
@@ -2471,7 +2470,6 @@
       }).catch(err => { 
         console.error("Capture failed:", err);
         target.style.cssText = originalStyle; 
-        target.scrollLeft = originalScrollLeft;
       });
     };
 
@@ -2661,9 +2659,9 @@
       };
 
       const getRankIcon = (rankNum, rankStr) => {
-        if (rankNum === 1) return <div className="flex items-center justify-center gap-0.5"><i className="fas fa-trophy text-[#d4af37] text-xs md:text-xl"></i><span className="text-[9px] md:text-xs font-extrabold text-[#d4af37]">{rankStr}</span></div>;
-        if (rankNum === 2) return <div className="flex items-center justify-center gap-0.5"><i className="fas fa-trophy text-[#a0a0a0] text-xs md:text-xl"></i><span className="text-[9px] md:text-xs font-extrabold text-[#909090]">{rankStr}</span></div>;
-        if (rankNum === 3) return <div className="flex items-center justify-center gap-0.5"><i className="fas fa-trophy text-[#cd7f32] text-xs md:text-xl"></i><span className="text-[9px] md:text-xs font-extrabold text-[#b87333]">{rankStr}</span></div>;
+        if (rankNum === 1) return <div className="flex items-center justify-center gap-0.5"><i className="fas fa-trophy text-[#d4af37] text-sm md:text-xl"></i><span className="text-[10px] md:text-xs font-extrabold text-[#d4af37]">{rankStr}</span></div>;
+        if (rankNum === 2) return <div className="flex items-center justify-center gap-0.5"><i className="fas fa-trophy text-[#a0a0a0] text-sm md:text-xl"></i><span className="text-[10px] md:text-xs font-extrabold text-[#909090]">{rankStr}</span></div>;
+        if (rankNum === 3) return <div className="flex items-center justify-center gap-0.5"><i className="fas fa-trophy text-[#cd7f32] text-sm md:text-xl"></i><span className="text-[10px] md:text-xs font-extrabold text-[#b87333]">{rankStr}</span></div>;
         return rankStr;
       };
 
@@ -2686,24 +2684,24 @@
             <table className="w-full text-center border-collapse table-fixed">
               <tbody>
                 <tr className="bg-emerald-900 text-white">
-                  <td className="py-1 md:py-2 border border-emerald-800 font-bold text-[9px] md:text-sm w-[18%] md:w-[15%] leading-tight">{title}</td>
-                  {slicedPars.map((_,i) => <td key={i} className="py-1 md:py-2 border border-emerald-800 w-[7.5%] md:w-[8%] text-[10px] md:text-sm">{startIndex + i + 1}</td>)}
-                  <td className="py-1 md:py-2 border border-emerald-800 font-bold w-[14.5%] md:w-[13%] bg-emerald-950 text-[#d4af37] text-[10px] md:text-sm">TOT</td>
+                  <td className="py-1.5 md:py-2 border border-emerald-800 font-bold text-[9px] md:text-sm w-[18%] md:w-[15%] leading-tight">{title}</td>
+                  {slicedPars.map((_,i) => <td key={i} className="py-1.5 md:py-2 border border-emerald-800 w-[7.5%] md:w-[8%] text-[10px] md:text-sm">{startIndex + i + 1}</td>)}
+                  <td className="py-1.5 md:py-2 border border-emerald-800 font-bold w-[14.5%] md:w-[13%] bg-emerald-950 text-[#d4af37] text-[10px] md:text-sm">TOT</td>
                 </tr>
                 <tr className="bg-gray-100 font-bold text-emerald-900">
-                  <td className="py-1 md:py-2 border border-gray-300 text-[9px] md:text-sm">Par</td>
-                  {slicedPars.map((par, i) => <td key={i} className="py-1 md:py-2 border border-gray-300 text-[11px] md:text-sm">{par}</td>)}
-                  <td className="py-1 md:py-2 border border-gray-300 font-bold bg-gray-200 text-[11px] md:text-sm">{parTotal}</td>
+                  <td className="py-1.5 md:py-2 border border-gray-300 text-[9px] md:text-sm">Par</td>
+                  {slicedPars.map((par, i) => <td key={i} className="py-1.5 md:py-2 border border-gray-300 text-[11px] md:text-sm">{par}</td>)}
+                  <td className="py-1.5 md:py-2 border border-gray-300 font-bold bg-gray-200 text-[11px] md:text-sm">{parTotal}</td>
                 </tr>
                 <tr>
-                  <td className="py-1 md:py-2 border border-gray-200 font-bold text-[9px] md:text-sm">Score</td>
-                  {slicedScores.map((score, i) => <td key={i} className={`py-1 md:py-2 border border-gray-200 font-mono font-bold text-[11px] md:text-base ${score>0 ? (score<slicedPars[i] ? 'text-red-600 bg-red-50' : score>slicedPars[i] ? 'text-blue-600 bg-blue-50' : '') : ''}`}>{score || '-'}</td>)}
-                  <td className="py-1 md:py-2 border border-gray-200 font-mono font-bold text-[11px] md:text-base bg-emerald-100/70 text-emerald-950">{scoreTotal > 0 ? scoreTotal : '-'}</td>
+                  <td className="py-1.5 md:py-2 border border-gray-200 font-bold text-[9px] md:text-sm">Score</td>
+                  {slicedScores.map((score, i) => <td key={i} className={`py-1.5 md:py-2 border border-gray-200 font-mono font-bold text-[11px] md:text-base ${score>0 ? (score<slicedPars[i] ? 'text-red-600 bg-red-50' : score>slicedPars[i] ? 'text-blue-600 bg-blue-50' : '') : ''}`}>{score || '-'}</td>)}
+                  <td className="py-1.5 md:py-2 border border-gray-200 font-mono font-bold text-[11px] md:text-base bg-emerald-100/70 text-emerald-950">{scoreTotal > 0 ? scoreTotal : '-'}</td>
                 </tr>
                 <tr className="bg-[#fdfbf7]">
-                  <td className="py-1 md:py-2 border border-[#d4af37]/30 font-bold text-[#9c7e1c] text-[8px] md:text-xs tracking-tight">Stableford</td>
-                  {slicedScores.map((score, i) => <td key={i} className="py-1 md:py-2 border border-[#d4af37]/30 font-mono font-bold text-[#d4af37] text-[11px] md:text-sm">{score>0 ? getStablefordPoints(score, slicedPars[i], eventRules) : '-'}</td>)}
-                  <td className="py-1 md:py-2 border border-[#d4af37]/40 font-mono font-extrabold text-[#9c7e1c] text-[11px] md:text-sm bg-amber-200/80">{ptsTotal}</td>
+                  <td className="py-1.5 md:py-2 border border-[#d4af37]/30 font-bold text-[#9c7e1c] text-[8px] md:text-xs tracking-tight">Stableford</td>
+                  {slicedScores.map((score, i) => <td key={i} className="py-1.5 md:py-2 border border-[#d4af37]/30 font-mono font-bold text-[#d4af37] text-[11px] md:text-sm">{score>0 ? getStablefordPoints(score, slicedPars[i], eventRules) : '-'}</td>)}
+                  <td className="py-1.5 md:py-2 border border-[#d4af37]/40 font-mono font-extrabold text-[#9c7e1c] text-[11px] md:text-sm bg-amber-200/80">{ptsTotal}</td>
                 </tr>
               </tbody>
             </table>
@@ -2844,51 +2842,47 @@
                   ))}
                 </div>
                 
-                <div id="leaderboard-capture" className="bg-white rounded-xl shadow-lg overflow-hidden pb-4 border border-gray-200 relative">
-                  <div className="bg-emerald-900 text-white p-3 md:p-4 text-center border-b border-[#d4af37] relative">
-                    <h2 className="text-base md:text-xl font-bold">{activeTab === 'ALL' ? 'Leaderboard - Overall' : activeTab === 'Senior' || activeTab === 'Lady' ? `Leaderboard - ${activeTab}` : `Leaderboard - Group ${activeTab}`}</h2>
+                {/* ตาราง Leaderboard สำหรับแสดงผลและจับภาพ (Fix Layout สมบูรณ์ ไม่แหว่ง ไม่เพี้ยน) */}
+                <div id="leaderboard-capture" className="bg-white rounded-xl shadow-lg overflow-hidden pb-4 border border-gray-200 relative" style={{ width: '100%', maxWidth: '100%' }}>
+                  <div className="bg-emerald-900 text-white p-4 text-center border-b border-[#d4af37] relative">
+                    <h2 className="text-lg md:text-xl font-bold">{activeTab === 'ALL' ? 'Leaderboard - Overall' : activeTab === 'Senior' || activeTab === 'Lady' ? `Leaderboard - ${activeTab}` : `Leaderboard - Group ${activeTab}`}</h2>
                     
                     {groupSubtitle && (
-                      <p className="text-[11px] md:text-sm text-emerald-200 mb-1">{groupSubtitle}</p>
+                      <p className="text-xs md:text-sm text-emerald-200 mt-1">{groupSubtitle}</p>
                     )}
                     
-                    <button data-html2canvas-ignore onClick={() => { setEditingRules(activeRules); setShowRulesModal(true); }} className="mt-2 inline-flex items-center text-[10px] md:text-xs bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 px-3 py-1 rounded-full border border-emerald-700 transition-colors">
+                    <button data-html2canvas-ignore onClick={() => { setEditingRules(activeRules); setShowRulesModal(true); }} className="mt-2 inline-flex items-center text-xs bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 px-3 py-1 rounded-full border border-emerald-700 transition-colors">
                       <i className="fas fa-info-circle mr-1.5"></i> Scoring Rules {isAdmin ? '(Edit)' : ''}
                     </button>
                     
-                    <button onClick={() => captureImage('leaderboard-capture', `${event.name}-Leaderboard-${activeTab}`)} data-html2canvas-ignore className="absolute right-2 md:right-4 bottom-2 md:bottom-4 bg-emerald-700 text-white px-2.5 md:px-3 py-1.5 rounded shadow text-[10px] md:text-xs hover:bg-emerald-600"><i className="fas fa-download mr-1"></i>Save Image</button>
+                    <button onClick={() => captureImage('leaderboard-capture', `${event.name}-Leaderboard-${activeTab}`)} data-html2canvas-ignore className="absolute right-4 bottom-4 bg-emerald-700 text-white px-3 py-1.5 rounded shadow text-xs hover:bg-emerald-600"><i className="fas fa-download mr-1"></i>Save Image</button>
                   </div>
                   
-                  {/* ตาราง Live View บนเว็บ: ฟิตพอดีจอ ไม่ต้องเลื่อนขวา และเห็นครบทุก Column */}
-                  <div className="w-full">
-                    <table className="w-full text-left text-[11px] md:text-sm table-fixed">
+                  <div className="w-full overflow-x-auto">
+                    <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse' }} className="text-left text-sm">
                       <thead className="bg-gray-100 text-emerald-900 border-b">
                         <tr>
-                          <th className="p-2 md:p-4 text-center w-[11%] md:w-[10%] whitespace-nowrap">Rank</th>
-                          <th className="p-2 md:p-4 w-[29%] md:w-[32%] truncate">Player</th>
-                          <th className="p-1 md:p-4 text-center w-[10%] md:w-[10%] whitespace-nowrap">Group</th>
-                          <th className="p-1 md:p-4 text-center w-[13%] md:w-[12%] whitespace-nowrap">Gross</th>
-                          <th className="p-1 md:p-4 text-center w-[15%] md:w-[14%] whitespace-nowrap">Stableford</th>
-                          <th className="p-1 md:p-4 text-center w-[10%] md:w-[10%] whitespace-nowrap">HCP</th>
-                          <th className="p-1 md:p-4 text-center w-[12%] md:w-[12%] whitespace-nowrap">NET</th>
+                          <th style={{ width: '10%' }} className="p-3.5 text-center">Rank</th>
+                          <th style={{ width: '38%' }} className="p-3.5">Player</th>
+                          <th style={{ width: '10%' }} className="p-3.5 text-center">Group</th>
+                          <th style={{ width: '11%' }} className="p-3.5 text-center">Gross</th>
+                          <th style={{ width: '13%' }} className="p-3.5 text-center">Stableford</th>
+                          <th style={{ width: '8%' }} className="p-3.5 text-center">HCP</th>
+                          <th style={{ width: '10%' }} className="p-3.5 text-center">NET</th>
                         </tr>
                       </thead>
                       <tbody>
                         {rankedPlayers.map((p) => (
                           <tr key={p.id} onClick={() => setViewScorecard(p)} className="border-b border-gray-100 hover:bg-emerald-50 cursor-pointer">
-                            <td className="p-2 md:p-4 text-center font-bold whitespace-nowrap">{p.rankStr === '-' ? '-' : getRankIcon(p.rankNum, p.rankStr)}</td>
-                            <td className="p-2 md:p-4 font-bold text-emerald-900 truncate" title={p.name}>
-                              <div className="flex items-center gap-1 overflow-hidden">
-                                <span className="truncate">{p.name}</span>
-                                {p.gender === 'Lady' && <span className="inline-block bg-rose-100 text-rose-700 text-[8px] md:text-xs px-1 py-0.2 rounded-full font-bold flex-shrink-0">Lady</span>} 
-                                {p.isSenior && <span className="inline-block bg-amber-100 text-amber-700 text-[8px] md:text-xs px-1 py-0.2 rounded-full font-bold flex-shrink-0">Senior</span>}
-                              </div>
+                            <td className="py-3 px-3.5 text-center font-bold">{p.rankStr === '-' ? '-' : getRankIcon(p.rankNum, p.rankStr)}</td>
+                            <td className="py-3 px-3.5 font-bold text-emerald-900 truncate" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.name}>
+                              {p.name}
                             </td>
-                            <td className="p-1 md:p-4 text-center font-bold text-gray-600 whitespace-nowrap">{p.group}</td>
-                            <td className="p-1 md:p-4 text-center font-mono font-semibold text-gray-900 whitespace-nowrap">{p.grossScore || '-'}</td>
-                            <td className="p-1 md:p-4 text-center font-mono font-bold text-[#d4af37] whitespace-nowrap">{p.stablefordPoints}</td>
-                            <td className="p-1 md:p-4 text-center font-mono text-gray-500 whitespace-nowrap">{p.holesPlayed === 18 ? p.handicap : '-'}</td>
-                            <td className="p-1 md:p-4 text-center font-mono font-extrabold text-[11px] md:text-base text-emerald-700 bg-emerald-50/50 whitespace-nowrap">{p.holesPlayed === 18 ? p.netScore : 'Playing'}</td>
+                            <td className="py-3 px-2 text-center font-bold text-gray-600">{p.group}</td>
+                            <td className="py-3 px-2 text-center font-mono font-semibold text-gray-900">{p.grossScore || '-'}</td>
+                            <td className="py-3 px-2 text-center font-mono font-bold text-[#d4af37]">{p.stablefordPoints}</td>
+                            <td className="py-3 px-2 text-center font-mono text-gray-500">{p.holesPlayed === 18 ? p.handicap : '-'}</td>
+                            <td className="py-3 px-2 text-center font-mono font-extrabold text-base text-emerald-700 bg-emerald-50/50">{p.holesPlayed === 18 ? p.netScore : 'Playing'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -2916,50 +2910,50 @@
                 </div>
 
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden relative border border-gray-300">
-                  <div className="overflow-auto max-h-[600px] relative hide-scroll">
-                    <table className="w-full text-center border-collapse">
+                  <div className="overflow-x-auto max-h-[600px] relative">
+                    <table className="w-full text-center border-collapse min-w-[900px] table-fixed">
                       <thead className="sticky top-0 z-40 bg-gray-100 shadow-sm">
                         <tr className="bg-emerald-900 text-white select-none">
-                          <th onClick={() => setAdminSort({ key: 'name', direction: adminSort.key==='name' && adminSort.direction==='asc' ? 'desc' : 'asc' })} className="sticky left-0 top-0 z-50 bg-emerald-900 p-2 md:p-3 min-w-[220px] md:min-w-[280px] text-left border-r border-emerald-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] cursor-pointer hover:bg-emerald-800 whitespace-nowrap text-xs md:text-sm">
+                          <th onClick={() => setAdminSort({ key: 'name', direction: adminSort.key==='name' && adminSort.direction==='asc' ? 'desc' : 'asc' })} className="sticky left-0 top-0 z-50 bg-emerald-900 p-2 md:p-3 w-[22%] text-left border-r border-emerald-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] cursor-pointer hover:bg-emerald-800 whitespace-nowrap text-xs md:text-sm">
                             Player
                           </th>
                           {event.pars.map((_, i) => (
-                            <th key={i} className="p-1 md:p-2 border-r border-emerald-700 min-w-[40px] md:min-w-[45px] text-[10px] md:text-[11px]">H{i+1}</th>
+                            <th key={i} className="p-1 md:p-1.5 border-r border-emerald-700 w-[3.8%] text-[10px] md:text-[11px]">H{i+1}</th>
                           ))}
-                          <th className="p-2 md:p-3 font-bold min-w-[50px] md:min-w-[60px] text-xs md:text-sm">TOT</th>
+                          <th className="p-2 md:p-3 font-bold w-[7%] text-xs md:text-sm">TOT</th>
                         </tr>
                         <tr className="bg-gray-200 text-emerald-900 text-[10px] md:text-xs border-b border-gray-300">
                           <th className="sticky left-0 z-50 bg-gray-200 p-2 text-right pr-4 font-bold border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Par</th>
-                          {event.pars.map((par, i) => <th key={i} className="p-1 md:p-2 border-r border-gray-300 font-bold">{par}</th>)}
+                          {event.pars.map((par, i) => <th key={i} className="p-1 md:p-1.5 border-r border-gray-300 font-bold">{par}</th>)}
                           <th className="p-2 font-bold">{totalPar}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {adminPlayers.map(p => (
                           <tr key={p.id} className="border-b border-gray-200 hover:bg-emerald-50 group">
-                            <td className="sticky left-0 z-20 bg-white p-2 md:p-3 border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] min-w-[220px] md:min-w-[280px]">
+                            <td className="sticky left-0 z-20 bg-white p-2 md:p-3 border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] w-[22%] truncate">
                               <div className="flex items-center justify-between w-full h-full">
-                                <div className="flex items-center gap-1.5 overflow-hidden flex-grow mr-2">
+                                <div className="flex items-center gap-1.5 overflow-hidden flex-grow mr-1">
                                   <span onClick={() => setEditingPlayer(p)} className="cursor-pointer hover:underline text-emerald-800 font-bold text-xs md:text-sm truncate" title={p.name}>{p.name}</span>
-                                  {p.gender === 'Lady' && <span className="bg-rose-100 text-rose-700 text-[9px] md:text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-bold">Lady</span>}
-                                  {p.isSenior && <span className="bg-amber-100 text-amber-700 text-[9px] md:text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-bold">Senior</span>}
+                                  {p.gender === 'Lady' && <span className="bg-rose-100 text-rose-700 text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-bold">Lady</span>}
+                                  {p.isSenior && <span className="bg-amber-100 text-amber-700 text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-bold">Senior</span>}
                                 </div>
-                                <button onClick={() => {if(window.confirm('Delete Player?')) db.ref(`events/${currentEventId}/players/${p.id}`).remove()}} className="text-red-400 hover:text-red-600 p-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"><i className="fas fa-trash text-xs md:text-sm"></i></button>
+                                <button onClick={() => {if(window.confirm('Delete Player?')) db.ref(`events/${currentEventId}/players/${p.id}`).remove()}} className="text-red-400 hover:text-red-600 p-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"><i className="fas fa-trash text-xs"></i></button>
                               </div>
                             </td>
                             {p.scores.map((score, idx) => (
-                              <td key={idx} className="p-0.5 md:p-1 border-r border-gray-100">
+                              <td key={idx} className="p-0.5 border-r border-gray-100 w-[3.8%]">
                                 <input 
                                   type="number" min="1" max="20" 
                                   inputMode="numeric" pattern="[0-9]*"
                                   value={score || ''} 
                                   onFocus={(e) => e.target.select()}
                                   onChange={(e) => updateScore(p.id, idx, e.target.value)} 
-                                  className={`w-9 h-8 md:w-11 md:h-10 text-center border rounded font-mono font-bold text-xs md:text-sm focus:ring-2 focus:border-emerald-500 outline-none transition-colors ${getScoreColorClass(score, event.pars[idx])}`} 
+                                  className={`w-full h-8 md:h-9 text-center border rounded font-mono font-bold text-xs md:text-sm focus:ring-2 focus:border-emerald-500 outline-none transition-colors ${getScoreColorClass(score, event.pars[idx])}`} 
                                 />
                               </td>
                             ))}
-                            <td className="p-2 md:p-3 font-bold font-mono text-emerald-800 bg-gray-50 border-l text-sm md:text-lg">{p.grossScore}</td>
+                            <td className="p-2 font-bold font-mono text-emerald-800 bg-gray-50 border-l text-xs md:text-base w-[7%]" suppressContentEditableWarning={true}>{p.grossScore}</td>
                           </tr>
                         ))}
                       </tbody>
