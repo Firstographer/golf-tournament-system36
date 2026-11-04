@@ -2438,7 +2438,6 @@
       return b.stablefordPoints - a.stablefordPoints; 
     };
 
-    // ฟังก์ชัน Save Image: ขยายคอนเทนต์ให้แสดงครบทั้งหมด (ทั้ง 60 คน) ไม่ติด Scrollbar ตอนแคปเจอร์
     const captureLeaderboardImage = (elementId, fileName) => {
       const target = document.getElementById(elementId);
       if (!target) return;
@@ -2463,7 +2462,6 @@
         useCORS: true,
         windowWidth: targetWidth + 50
       }).then(canvas => {
-        // คืนค่าเดิมหลังแคปเจอร์เสร็จทันที
         target.style.width = originalWidth;
         if (scrollContainer) {
           scrollContainer.style.maxHeight = originalMaxHeight;
@@ -2682,9 +2680,9 @@
       };
 
       const getRankIcon = (rankNum, rankStr) => {
-        if (rankNum === 1) return <div className="flex items-center justify-center gap-0.5"><i className="fas fa-trophy text-[#d4af37] text-sm md:text-xl"></i><span className="text-[10px] md:text-xs font-extrabold text-[#d4af37]">{rankStr}</span></div>;
-        if (rankNum === 2) return <div className="flex items-center justify-center gap-0.5"><i className="fas fa-trophy text-[#a0a0a0] text-sm md:text-xl"></i><span className="text-[10px] md:text-xs font-extrabold text-[#909090]">{rankStr}</span></div>;
-        if (rankNum === 3) return <div className="flex items-center justify-center gap-0.5"><i className="fas fa-trophy text-[#cd7f32] text-sm md:text-xl"></i><span className="text-[10px] md:text-xs font-extrabold text-[#b87333]">{rankStr}</span></div>;
+        if (rankNum === 1) return <div className="flex items-center justify-center gap-0.5"><i className="fas fa-trophy text-[#d4af37] text-xs md:text-xl"></i><span className="text-[9px] md:text-xs font-extrabold text-[#d4af37]">{rankStr}</span></div>;
+        if (rankNum === 2) return <div className="flex items-center justify-center gap-0.5"><i className="fas fa-trophy text-[#a0a0a0] text-xs md:text-xl"></i><span className="text-[9px] md:text-xs font-extrabold text-[#909090]">{rankStr}</span></div>;
+        if (rankNum === 3) return <div className="flex items-center justify-center gap-0.5"><i className="fas fa-trophy text-[#cd7f32] text-xs md:text-xl"></i><span className="text-[9px] md:text-xs font-extrabold text-[#b87333]">{rankStr}</span></div>;
         return rankStr;
       };
 
@@ -2865,7 +2863,7 @@
                   ))}
                 </div>
                 
-                {/* Leaderboard Table: ใช้ Responsive % ปกติเพื่อไม่ให้จอมือถือเบียด และรองรับ Sticky Header ตอนเลื่อนดูบนเว็บ พร้อมระบบแคปเจอร์ครบ 60 คน */}
+                {/* Leaderboard Table: ปรับสัดส่วน % คอลัมน์และขนาดฟอนต์ให้มือถือเห็นครบทุก Column โดยไม่ต้องเลื่อนขวา */}
                 <div id="leaderboard-capture" className="bg-white rounded-xl shadow-lg overflow-hidden pb-4 border border-gray-200 relative">
                   <div className="bg-emerald-900 text-white p-4 text-center border-b border-[#d4af37] relative">
                     <h2 className="text-lg md:text-xl font-bold">{activeTab === 'ALL' ? 'Leaderboard - Overall' : activeTab === 'Senior' || activeTab === 'Lady' ? `Leaderboard - ${activeTab}` : `Leaderboard - Group ${activeTab}`}</h2>
@@ -2882,30 +2880,30 @@
                   </div>
                   
                   <div className="leaderboard-scroll-area w-full overflow-y-auto max-h-[70vh]">
-                    <table className="w-full text-left text-sm border-collapse">
+                    <table className="w-full text-left text-xs md:text-sm border-collapse table-fixed">
                       <thead className="bg-gray-100 text-emerald-900 border-b sticky top-0 z-30 shadow-sm">
                         <tr>
-                          <th className="p-3.5 text-center w-[10%] bg-gray-100">Rank</th>
-                          <th className="p-3.5 w-[36%] bg-gray-100">Player</th>
-                          <th className="p-3.5 text-center w-[11%] bg-gray-100">Group</th>
-                          <th className="p-3.5 text-center w-[11%] bg-gray-100">Gross</th>
-                          <th className="p-3.5 text-center w-[14%] bg-gray-100">Stableford</th>
-                          <th className="p-3.5 text-center w-[8%] bg-gray-100">HCP</th>
-                          <th className="p-3.5 text-center w-[10%] bg-gray-100">NET</th>
+                          <th className="py-2.5 px-1 md:p-3.5 text-center w-[11%] md:w-[10%] bg-gray-100 text-[10px] md:text-sm">Rank</th>
+                          <th className="py-2.5 px-2 md:p-3.5 w-[33%] md:w-[36%] bg-gray-100 text-[10px] md:text-sm">Player</th>
+                          <th className="py-2.5 px-1 md:p-3.5 text-center w-[12%] md:w-[11%] bg-gray-100 text-[10px] md:text-sm">Group</th>
+                          <th className="py-2.5 px-1 md:p-3.5 text-center w-[11%] md:w-[11%] bg-gray-100 text-[10px] md:text-sm">Gross</th>
+                          <th className="py-2.5 px-1 md:p-3.5 text-center w-[15%] md:w-[14%] bg-gray-100 text-[9px] md:text-sm leading-tight">Stableford</th>
+                          <th className="py-2.5 px-1 md:p-3.5 text-center w-[8%] md:w-[8%] bg-gray-100 text-[10px] md:text-sm">HCP</th>
+                          <th className="py-2.5 px-1 md:p-3.5 text-center w-[10%] md:w-[10%] bg-gray-100 text-[10px] md:text-sm">NET</th>
                         </tr>
                       </thead>
                       <tbody>
                         {rankedPlayers.map((p) => (
                           <tr key={p.id} onClick={() => setViewScorecard(p)} className="border-b border-gray-100 hover:bg-emerald-50 cursor-pointer">
-                            <td className="py-3 px-3.5 text-center font-bold">{p.rankStr === '-' ? '-' : getRankIcon(p.rankNum, p.rankStr)}</td>
-                            <td className="py-3 px-3.5 font-bold text-emerald-900 truncate" title={p.name}>
+                            <td className="py-2.5 px-1 md:py-3 md:px-3.5 text-center font-bold text-[11px] md:text-sm">{p.rankStr === '-' ? '-' : getRankIcon(p.rankNum, p.rankStr)}</td>
+                            <td className="py-2.5 px-2 md:py-3 md:px-3.5 font-bold text-emerald-900 truncate text-[11px] md:text-sm" title={p.name}>
                               {p.name}
                             </td>
-                            <td className="py-3 px-2 text-center font-bold text-gray-600">{p.group}</td>
-                            <td className="py-3 px-2 text-center font-mono font-semibold text-gray-900">{p.grossScore || '-'}</td>
-                            <td className="py-3 px-2 text-center font-mono font-bold text-[#d4af37]">{p.stablefordPoints}</td>
-                            <td className="py-3 px-2 text-center font-mono text-gray-500">{p.holesPlayed === 18 ? p.handicap : '-'}</td>
-                            <td className="py-3 px-2 text-center font-mono font-extrabold text-base text-emerald-700 bg-emerald-50/50">{p.holesPlayed === 18 ? p.netScore : 'Playing'}</td>
+                            <td className="py-2.5 px-1 md:py-3 md:px-2 text-center font-bold text-gray-600 text-[10px] md:text-sm">{p.group}</td>
+                            <td className="py-2.5 px-1 md:py-3 md:px-2 text-center font-mono font-semibold text-gray-900 text-[11px] md:text-sm">{p.grossScore || '-'}</td>
+                            <td className="py-2.5 px-1 md:py-3 md:px-2 text-center font-mono font-bold text-[#d4af37] text-[11px] md:text-sm">{p.stablefordPoints}</td>
+                            <td className="py-2.5 px-1 md:py-3 md:px-2 text-center font-mono text-gray-500 text-[11px] md:text-sm">{p.holesPlayed === 18 ? p.handicap : '-'}</td>
+                            <td className="py-2.5 px-1 md:py-3 md:px-2 text-center font-mono font-extrabold text-[11px] md:text-base text-emerald-700 bg-emerald-50/50">{p.holesPlayed === 18 ? p.netScore : 'Playing'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -3288,8 +3286,7 @@
 
                 <div className="grid grid-cols-4 gap-1.5 md:gap-3 mb-4 md:mb-6 text-center">
                   <div className="bg-gray-50 border p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-gray-500 mb-1">Gross</p><p className="text-xl md:text-3xl font-mono text-gray-900 font-bold">{viewScorecard.grossScore}</p></div>
-                  <div className="bg-[#fdfbf7] border border-[#d4af37] p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-[#9c7e1c] mb-1">Stableford</p><p className="text-xl md:text-3xl font-mono text-[#d4af37] font-bold">{viewScorecard.stablefordPoints}</p></div>
-                  <div className="bg-gray-50 border p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-gray-500 mb-1">HCP</p><p className="text-xl md:text-3xl font-mono text-gray-600 font-bold">{viewScorecard.holesPlayed === 18 ? viewScorecard.handicap : '-'}</p></div>
+                  <div className="bg-[#fdfbf7] border border-[#d4af37] p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-[#9c7e1c] mb-1">Stableford</p><p className="text-xl md:text-3xl font-mono text-[#d4af37] font-bold">{viewScorecard.stablefordPoints}</p><p className="text-[10px] md:text-xs font-bold text-gray-500 mb-1">HCP</p><p className="text-xl md:text-3xl font-mono text-gray-600 font-bold">{viewScorecard.holesPlayed === 18 ? viewScorecard.handicap : '-'}</p></div>
                   <div className="bg-emerald-50 border border-emerald-200 p-2 md:p-3 rounded-xl"><p className="text-[10px] md:text-xs font-bold text-emerald-700 mb-1">NET</p><p className="text-xl md:text-3xl font-mono text-emerald-700 font-bold">{viewScorecard.holesPlayed === 18 ? viewScorecard.netScore : '-'}</p></div>
                 </div>
                 {renderNineHoles(0, 9, 'OUT (1-9)', event.pars, activeRules)}
