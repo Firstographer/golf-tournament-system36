@@ -2438,6 +2438,7 @@
       return b.stablefordPoints - a.stablefordPoints; 
     };
 
+    // ปรับปรุงฟังก์ชัน Save Image ให้เพิ่ม Padding ด้านล่างและขอบ เพื่อไม่ให้ตัวหนังสือติดขอบจนขาดหาย
     const captureImage = (elementId, fileName) => {
       const target = document.getElementById(elementId);
       if (!target) return;
@@ -2452,6 +2453,7 @@
       target.style.maxWidth = 'none'; 
       target.style.background = '#ffffff'; 
       target.style.boxShadow = 'none';
+      target.style.paddingBottom = '24px'; // เพิ่มพื้นที่ว่างด้านล่างชั่วคราวตอนแคปเจอร์
       
       html2canvas(target, { 
         backgroundColor: '#ffffff', 
@@ -2857,7 +2859,7 @@
                     <button onClick={() => captureImage('leaderboard-capture', `${event.name}-Leaderboard-${activeTab}`)} data-html2canvas-ignore className="absolute right-2 md:right-4 bottom-2 md:bottom-4 bg-emerald-700 text-white px-2.5 md:px-3 py-1.5 rounded shadow text-[10px] md:text-xs hover:bg-emerald-600"><i className="fas fa-download mr-1"></i>Save Image</button>
                   </div>
                   
-                  {/* ตาราง Live View บนเว็บ: ใช้ table-fixed และบีบขนาดคอลัมน์ให้พอดีจอ ไม่ต้องเลื่อนซ้ายขวา เห็นครบทุก Column */}
+                  {/* ตาราง Live View บนเว็บ: ฟิตพอดีจอ ไม่ต้องเลื่อนขวา และเห็นครบทุก Column */}
                   <div className="w-full">
                     <table className="w-full text-left text-[11px] md:text-sm table-fixed">
                       <thead className="bg-gray-100 text-emerald-900 border-b">
