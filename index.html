@@ -2446,7 +2446,7 @@
       target.scrollLeft = 0; 
 
       const originalStyle = target.style.cssText;
-      const targetWidth = Math.max(target.scrollWidth, 650); 
+      const targetWidth = Math.max(target.scrollWidth, 750); // ขยายความกว้าง Canvas ชั่วคราวเพื่อให้ Save ภาพออกมาสวยสมบูรณ์ไม่ถูกตัด
 
       target.style.width = targetWidth + 'px'; 
       target.style.maxWidth = 'none'; 
@@ -2857,13 +2857,13 @@
                     <button onClick={() => captureImage('leaderboard-capture', `${event.name}-Leaderboard-${activeTab}`)} data-html2canvas-ignore className="absolute right-2 md:right-4 bottom-2 md:bottom-4 bg-emerald-700 text-white px-2.5 md:px-3 py-1.5 rounded shadow text-[10px] md:text-xs hover:bg-emerald-600"><i className="fas fa-download mr-1"></i>Save Image</button>
                   </div>
                   
-                  {/* คืนค่าการแสดงผลบนเว็บให้ตารางยืดหยุ่นตามธรรมชาติ พร้อม Scrollbar แนวนอนเพื่อให้เห็นครบทุกคอลัมน์ */}
-                  <div className="overflow-x-auto w-full">
-                    <table className="w-full text-left text-xs md:text-sm min-w-[580px]">
+                  {/* ตาราง Live View บนเว็บ: เปิด scroll แนวนอนอัตโนมัติ เพื่อให้หน้าเว็บดูสดสมบูรณ์ 100% ไม่เบียด */}
+                  <div className="w-full overflow-x-auto">
+                    <table className="w-full text-left text-xs md:text-sm min-w-[620px]">
                       <thead className="bg-gray-100 text-emerald-900 border-b">
                         <tr>
                           <th className="p-3 md:p-4 text-center whitespace-nowrap w-16">Rank</th>
-                          <th className="p-3 md:p-4 min-w-[160px] md:min-w-[220px]">Player</th>
+                          <th className="p-3 md:p-4 min-w-[180px] md:min-w-[220px]">Player</th>
                           <th className="p-3 md:p-4 text-center whitespace-nowrap w-20">Group</th>
                           <th className="p-3 md:p-4 text-center whitespace-nowrap w-20">Gross</th>
                           <th className="p-3 md:p-4 text-center whitespace-nowrap w-24">Stableford</th>
