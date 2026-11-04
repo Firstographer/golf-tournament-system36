@@ -2438,7 +2438,6 @@
       return b.stablefordPoints - a.stablefordPoints; 
     };
 
-    // แก้ไขฟังก์ชัน Capture Image ให้เคลียร์พื้นที่และกำหนดขนาด Canvas ให้เรนเดอร์ตัวหนังสือภาษาไทยไม่ถูกบีบ
     const captureImage = (elementId, fileName) => {
       const target = document.getElementById(elementId);
       if (!target) return;
@@ -2447,7 +2446,7 @@
       target.scrollLeft = 0; 
 
       const originalStyle = target.style.cssText;
-      const targetWidth = Math.max(target.scrollWidth, 600); // กำหนดความกว้างขั้นต่ำไม่ให้ต่ำกว่า 600px เพื่อให้ชื่อไม่ถูกตัด
+      const targetWidth = Math.max(target.scrollWidth, 650); 
 
       target.style.width = targetWidth + 'px'; 
       target.style.maxWidth = 'none'; 
@@ -2858,18 +2857,18 @@
                     <button onClick={() => captureImage('leaderboard-capture', `${event.name}-Leaderboard-${activeTab}`)} data-html2canvas-ignore className="absolute right-2 md:right-4 bottom-2 md:bottom-4 bg-emerald-700 text-white px-2.5 md:px-3 py-1.5 rounded shadow text-[10px] md:text-xs hover:bg-emerald-600"><i className="fas fa-download mr-1"></i>Save Image</button>
                   </div>
                   
-                  {/* ปรับแก้ให้คอลัมน์ Player มีพื้นที่แสดงผลกว้างพอดี ไม่ถูกบีบอัดจนตัวหนังสือซ้อนกันตอน Save ภาพ */}
-                  <div className="overflow-x-auto hide-scroll w-full">
-                    <table className="w-full text-left text-xs md:text-sm">
+                  {/* คืนค่าการแสดงผลบนเว็บให้ตารางยืดหยุ่นตามธรรมชาติ พร้อม Scrollbar แนวนอนเพื่อให้เห็นครบทุกคอลัมน์ */}
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left text-xs md:text-sm min-w-[580px]">
                       <thead className="bg-gray-100 text-emerald-900 border-b">
                         <tr>
-                          <th className="p-3 md:p-4 text-center whitespace-nowrap">Rank</th>
-                          <th className="p-3 md:p-4 min-w-[140px] md:min-w-[200px]">Player</th>
-                          <th className="p-3 md:p-4 text-center whitespace-nowrap">Group</th>
-                          <th className="p-3 md:p-4 text-center whitespace-nowrap">Gross</th>
-                          <th className="p-3 md:p-4 text-center whitespace-nowrap">Stableford</th>
-                          <th className="p-3 md:p-4 text-center whitespace-nowrap">HCP</th>
-                          <th className="p-3 md:p-4 text-center whitespace-nowrap">NET</th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap w-16">Rank</th>
+                          <th className="p-3 md:p-4 min-w-[160px] md:min-w-[220px]">Player</th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap w-20">Group</th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap w-20">Gross</th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap w-24">Stableford</th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap w-20">HCP</th>
+                          <th className="p-3 md:p-4 text-center whitespace-nowrap w-24">NET</th>
                         </tr>
                       </thead>
                       <tbody>
