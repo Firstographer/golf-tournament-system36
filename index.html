@@ -2438,22 +2438,24 @@
       return b.stablefordPoints - a.stablefordPoints; 
     };
 
-    // ฟังก์ชัน Save Image: ล็อกความกว้างและสัดส่วนภาพ Leaderboard ให้สวยงามเป๊ะทุกตัวอักษร
-    const captureImage = (elementId, fileName) => {
+    // ฟังก์ชัน Save Image: ขยายคอนเทนต์ให้แสดงครบทั้งหมด (ทั้ง 60 คน) ไม่ติด Scrollbar ตอนแคปเจอร์
+    const captureLeaderboardImage = (elementId, fileName) => {
       const target = document.getElementById(elementId);
       if (!target) return;
       
-      const originalStyle = target.style.cssText;
-      const targetWidth = 1000; 
+      const scrollContainer = target.querySelector('.leaderboard-scroll-area');
+      const originalMaxHeight = scrollContainer ? scrollContainer.style.maxHeight : '';
+      const originalOverflow = scrollContainer ? scrollContainer.style.overflowY : '';
+      const originalWidth = target.style.width;
 
-      target.style.width = targetWidth + 'px'; 
-      target.style.maxWidth = 'none'; 
-      target.style.background = '#ffffff'; 
-      target.style.boxShadow = 'none';
-      target.style.paddingLeft = '15px'; 
-      target.style.paddingRight = '15px'; 
-      target.style.paddingTop = '15px';
-      target.style.paddingBottom = '30px';
+      const targetWidth = 1000;
+      target.style.width = targetWidth + 'px';
+      target.style.maxWidth = 'none';
+
+      if (scrollContainer) {
+        scrollContainer.style.maxHeight = 'none';
+        scrollContainer.style.overflowY = 'visible';
+      }
       
       html2canvas(target, { 
         backgroundColor: '#ffffff', 
@@ -2461,7 +2463,12 @@
         useCORS: true,
         windowWidth: targetWidth + 50
       }).then(canvas => {
-        target.style.cssText = originalStyle;
+        // คืนค่าเดิมหลังแคปเจอร์เสร็จทันที
+        target.style.width = originalWidth;
+        if (scrollContainer) {
+          scrollContainer.style.maxHeight = originalMaxHeight;
+          scrollContainer.style.overflowY = originalOverflow;
+        }
 
         const link = document.createElement('a'); 
         link.download = `${fileName}.png`;
@@ -2469,7 +2476,23 @@
         link.click();
       }).catch(err => { 
         console.error("Capture failed:", err);
-        target.style.cssText = originalStyle; 
+        target.style.width = originalWidth;
+        if (scrollContainer) {
+          scrollContainer.style.maxHeight = originalMaxHeight;
+          scrollContainer.style.overflowY = originalOverflow;
+        }
+      });
+    };
+
+    const captureImage = (elementId, fileName) => {
+      const target = document.getElementById(elementId);
+      if (!target) return;
+      
+      html2canvas(target, { backgroundColor: '#ffffff', scale: 2, useCORS: true }).then(canvas => {
+        const link = document.createElement('a'); 
+        link.download = `${fileName}.png`;
+        link.href = canvas.toDataURL('image/png'); 
+        link.click();
       });
     };
 
@@ -2842,8 +2865,8 @@
                   ))}
                 </div>
                 
-                {/* ตาราง Leaderboard สำหรับแสดงผลและจับภาพ (Fix Layout สมบูรณ์ ไม่แหว่ง ไม่เพี้ยน) */}
-                <div id="leaderboard-capture" className="bg-white rounded-xl shadow-lg overflow-hidden pb-4 border border-gray-200 relative" style={{ width: '100%', maxWidth: '100%' }}>
+                {/* Leaderboard Table: ใช้ Responsive % ปกติเพื่อไม่ให้จอมือถือเบียด และรองรับ Sticky Header ตอนเลื่อนดูบนเว็บ พร้อมระบบแคปเจอร์ครบ 60 คน */}
+                <div id="leaderboard-capture" className="bg-white rounded-xl shadow-lg overflow-hidden pb-4 border border-gray-200 relative">
                   <div className="bg-emerald-900 text-white p-4 text-center border-b border-[#d4af37] relative">
                     <h2 className="text-lg md:text-xl font-bold">{activeTab === 'ALL' ? 'Leaderboard - Overall' : activeTab === 'Senior' || activeTab === 'Lady' ? `Leaderboard - ${activeTab}` : `Leaderboard - Group ${activeTab}`}</h2>
                     
@@ -2855,27 +2878,27 @@
                       <i className="fas fa-info-circle mr-1.5"></i> Scoring Rules {isAdmin ? '(Edit)' : ''}
                     </button>
                     
-                    <button onClick={() => captureImage('leaderboard-capture', `${event.name}-Leaderboard-${activeTab}`)} data-html2canvas-ignore className="absolute right-4 bottom-4 bg-emerald-700 text-white px-3 py-1.5 rounded shadow text-xs hover:bg-emerald-600"><i className="fas fa-download mr-1"></i>Save Image</button>
+                    <button onClick={() => captureLeaderboardImage('leaderboard-capture', `${event.name}-Leaderboard-${activeTab}`)} data-html2canvas-ignore className="absolute right-4 bottom-4 bg-emerald-700 text-white px-3 py-1.5 rounded shadow text-xs hover:bg-emerald-600"><i className="fas fa-download mr-1"></i>Save Image</button>
                   </div>
                   
-                  <div className="w-full overflow-x-auto">
-                    <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse' }} className="text-left text-sm">
-                      <thead className="bg-gray-100 text-emerald-900 border-b">
+                  <div className="leaderboard-scroll-area w-full overflow-y-auto max-h-[70vh]">
+                    <table className="w-full text-left text-sm border-collapse">
+                      <thead className="bg-gray-100 text-emerald-900 border-b sticky top-0 z-30 shadow-sm">
                         <tr>
-                          <th style={{ width: '10%' }} className="p-3.5 text-center">Rank</th>
-                          <th style={{ width: '38%' }} className="p-3.5">Player</th>
-                          <th style={{ width: '10%' }} className="p-3.5 text-center">Group</th>
-                          <th style={{ width: '11%' }} className="p-3.5 text-center">Gross</th>
-                          <th style={{ width: '13%' }} className="p-3.5 text-center">Stableford</th>
-                          <th style={{ width: '8%' }} className="p-3.5 text-center">HCP</th>
-                          <th style={{ width: '10%' }} className="p-3.5 text-center">NET</th>
+                          <th className="p-3.5 text-center w-[10%] bg-gray-100">Rank</th>
+                          <th className="p-3.5 w-[36%] bg-gray-100">Player</th>
+                          <th className="p-3.5 text-center w-[11%] bg-gray-100">Group</th>
+                          <th className="p-3.5 text-center w-[11%] bg-gray-100">Gross</th>
+                          <th className="p-3.5 text-center w-[14%] bg-gray-100">Stableford</th>
+                          <th className="p-3.5 text-center w-[8%] bg-gray-100">HCP</th>
+                          <th className="p-3.5 text-center w-[10%] bg-gray-100">NET</th>
                         </tr>
                       </thead>
                       <tbody>
                         {rankedPlayers.map((p) => (
                           <tr key={p.id} onClick={() => setViewScorecard(p)} className="border-b border-gray-100 hover:bg-emerald-50 cursor-pointer">
                             <td className="py-3 px-3.5 text-center font-bold">{p.rankStr === '-' ? '-' : getRankIcon(p.rankNum, p.rankStr)}</td>
-                            <td className="py-3 px-3.5 font-bold text-emerald-900 truncate" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.name}>
+                            <td className="py-3 px-3.5 font-bold text-emerald-900 truncate" title={p.name}>
                               {p.name}
                             </td>
                             <td className="py-3 px-2 text-center font-bold text-gray-600">{p.group}</td>
@@ -2953,7 +2976,7 @@
                                 />
                               </td>
                             ))}
-                            <td className="p-2 font-bold font-mono text-emerald-800 bg-gray-50 border-l text-xs md:text-base w-[7%]" suppressContentEditableWarning={true}>{p.grossScore}</td>
+                            <td className="p-2 font-bold font-mono text-emerald-800 bg-gray-50 border-l text-xs md:text-base w-[7%]">{p.grossScore}</td>
                           </tr>
                         ))}
                       </tbody>
