@@ -2910,18 +2910,20 @@
                       <p className="text-xs md:text-sm text-emerald-200 mt-1">{groupSubtitle}</p>
                     )}
 
-                    <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
-                      <button data-html2canvas-ignore onClick={() => {setEditingRules(activeRules); setShowRulesModal(true);}} className="inline-flex items-center text-xs bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 px-3 py-1 rounded-full border border-emerald-700 transition-colors">
-                        <i className="fas fa-info-circle mr-1.5"></i> Scoring Rules {isAdmin ? '(Edit)' : ''}
+                    {/* แก้ไขเฉพาะส่วนนี้: จับปุ่ม Save Image เข้ามาอยู่ในวง flex-wrap เพื่อไม่ให้ทับกันบนมือถือ และให้กลับไปอยู่ขวาล่างเมื่อเป็นจอใหญ่ (md) */}
+                    <div className="mt-2.5 mb-1 flex flex-wrap items-center justify-center gap-1.5 md:gap-2 relative">
+                      <button data-html2canvas-ignore onClick={() => {setEditingRules(activeRules); setShowRulesModal(true);}} className="inline-flex items-center text-[10px] md:text-xs bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 px-2.5 md:px-3 py-1.5 rounded-full border border-emerald-700 transition-colors">
+                        <i className="fas fa-info-circle mr-1 md:mr-1.5"></i> Scoring Rules {isAdmin ? '(Edit)' : ''}
                       </button>
                       {isAdmin && (
-                        <button data-html2canvas-ignore onClick={() => {setEditingHcp(activeHcpRules); setShowHcpModal(true);}} className="inline-flex items-center text-xs bg-amber-600/80 hover:bg-amber-600 text-amber-100 px-3 py-1 rounded-full border border-amber-700 transition-colors shadow-sm">
-                          <i className="fas fa-users-cog mr-1.5"></i> Group HCP (Edit)
+                        <button data-html2canvas-ignore onClick={() => {setEditingHcp(activeHcpRules); setShowHcpModal(true);}} className="inline-flex items-center text-[10px] md:text-xs bg-amber-600/80 hover:bg-amber-600 text-amber-100 px-2.5 md:px-3 py-1.5 rounded-full border border-amber-700 transition-colors shadow-sm">
+                          <i className="fas fa-users-cog mr-1 md:mr-1.5"></i> Group HCP (Edit)
                         </button>
                       )}
+                      <button data-html2canvas-ignore onClick={() => captureLeaderboardImage('leaderboard-capture', `${event.name}-Leaderboard-${activeTab}`)} className="inline-flex md:absolute md:-top-4 md:-right-1 items-center text-[10px] md:text-xs bg-emerald-700 text-white px-2.5 md:px-3 py-1.5 rounded-full md:rounded shadow hover:bg-emerald-600 transition-colors">
+                        <i className="fas fa-download mr-1 md:mr-1.5"></i> Save Image
+                      </button>
                     </div>
-
-                    <button onClick={() => captureLeaderboardImage('leaderboard-capture', `${event.name}-Leaderboard-${activeTab}`)} data-html2canvas-ignore className="absolute right-4 bottom-4 bg-emerald-700 text-white px-3 py-1.5 rounded shadow text-xs hover:bg-emerald-600"><i className="fas fa-download mr-1"></i>Save Image</button>
                   </div>
 
                   <div className="leaderboard-scroll-area w-full overflow-y-auto max-h-[70vh]">
