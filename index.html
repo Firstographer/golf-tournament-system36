@@ -2404,6 +2404,7 @@
     };
 
     const DEFAULT_RULES = {albatross: 5, eagle: 4, birdie: 3, par: 2, bogey: 1, doubleBogey: 0};
+    const DEFAULT_HCP_RULES = {groupAMax: 9, groupCMin: 19};
 
     const getStablefordPoints = (score, par, rules) => {
       if (!score || score === 0 || score === '') return 0;
@@ -2424,7 +2425,7 @@
       return 'text-gray-900 bg-gray-50 border-gray-300';
     };
 
-    const calculatePlayerStats = (player, eventPars, rules) => {
+    const calculatePlayerStats = (player, eventPars, rules, hcpRules = DEFAULT_HCP_RULES) => {
       let grossScore = 0; let stablefordPoints = 0; let holesPlayed = 0;
       const scores = player.scores || Array(18).fill(0);
 
@@ -2444,9 +2445,9 @@
       else if (player.isSenior) group = 'Senior';
       else {
         if (holesPlayed === 18) {
-          if (handicap <= 9) group = 'A';
-          else if (handicap <= 18) group = 'B';
-          else group = 'C';
+          if (handicap <= hcpRules.groupAMax) group = 'A';
+          else if (handicap >= hcpRules.groupCMin) group = 'C';
+          else group = 'B';
         } else {group = 'Pending';}
       }
       return {...player, scores, grossScore, stablefordPoints, handicap, netScore, group, holesPlayed};
@@ -2529,10 +2530,12 @@
       const [pin, setPin] = useState('');
       const [showCreateModal, setShowCreateModal] = useState(false);
       const [showRulesModal, setShowRulesModal] = useState(false);
+      const [showHcpModal, setShowHcpModal] = useState(false);
 
       const [newEventData, setNewEventData] = useState({eventName: '', courseName: '', date: '', pars: Array(18).fill(4), rules: {...DEFAULT_RULES}});
       const [isCustomCourse, setIsCustomCourse] = useState(false);
       const [editingRules, setEditingRules] = useState(null);
+      const [editingHcp, setEditingHcp] = useState({...DEFAULT_HCP_RULES});
 
       const [courseSearch, setCourseSearch] = useState('');
       const [selectedProvinceFilter, setSelectedProvinceFilter] = useState('ALL');
@@ -2618,6 +2621,7 @@
           date: newEventData.date,
           pars: newEventData.pars,
           rules: finalRules,
+          hcpRules: DEFAULT_HCP_RULES,
           players: {}
         }).then(() => {
           setShowCreateModal(false);
@@ -2662,6 +2666,7 @@
           date: mockupDate,
           pars: pars,
           rules: {...DEFAULT_RULES},
+          hcpRules: DEFAULT_HCP_RULES,
           players: mockPlayers
         }).then(() => {alert('✅ สร้างข้อมูลจำลองสำเร็จ!');});
       };
@@ -2702,6 +2707,13 @@
         }
         db.ref(`events/${currentEventId}/rules`).set(finalRules).then(() => {
           setShowRulesModal(false);
+        });
+      };
+
+      const saveHcpRules = (e) => {
+        e.preventDefault();
+        db.ref(`events/${currentEventId}/hcpRules`).set(editingHcp).then(() => {
+          setShowHcpModal(false);
         });
       };
 
@@ -2757,24 +2769,25 @@
       };
 
       const event = currentEventId ? events[currentEventId] : null;
-      let displayPlayers = []; let rankedPlayers = []; let adminPlayers = []; let totalPar = 0; let activeRules = DEFAULT_RULES;
+      let displayPlayers = []; let rankedPlayers = []; let adminPlayers = []; let totalPar = 0; let activeRules = DEFAULT_RULES; let activeHcpRules = DEFAULT_HCP_RULES;
       let groupSubtitle = "";
 
       if (event) {
         totalPar = event.pars.reduce((a, b) => a + b, 0);
         activeRules = event.rules || DEFAULT_RULES;
+        activeHcpRules = event.hcpRules || DEFAULT_HCP_RULES;
 
         const rawPlayers = event.players ? Object.values(event.players) : [];
-        const processedPlayers = rawPlayers.map(p => calculatePlayerStats(p, event.pars, activeRules));
+        const processedPlayers = rawPlayers.map(p => calculatePlayerStats(p, event.pars, activeRules, activeHcpRules));
 
         displayPlayers = [...processedPlayers];
         if (activeTab !== 'ALL') displayPlayers = displayPlayers.filter(p => p.group === activeTab);
         displayPlayers.sort(comparePlayers);
 
         if (activeTab === 'ALL') groupSubtitle = "System 36 Format";
-        else if (activeTab === 'A') groupSubtitle = "Handicap 0 - 9";
-        else if (activeTab === 'B') groupSubtitle = "Handicap 10 - 18";
-        else if (activeTab === 'C') groupSubtitle = "Handicap 19+";
+        else if (activeTab === 'A') groupSubtitle = `Handicap 0 - ${activeHcpRules.groupAMax}`;
+        else if (activeTab === 'B') groupSubtitle = `Handicap ${activeHcpRules.groupAMax + 1} - ${activeHcpRules.groupCMin - 1}`;
+        else if (activeTab === 'C') groupSubtitle = `Handicap ${activeHcpRules.groupCMin}+`;
 
         let currentRankNum = 1;
         rankedPlayers = displayPlayers.map((p, i) => {
@@ -2897,9 +2910,16 @@
                       <p className="text-xs md:text-sm text-emerald-200 mt-1">{groupSubtitle}</p>
                     )}
 
-                    <button data-html2canvas-ignore onClick={() => {setEditingRules(activeRules); setShowRulesModal(true);}} className="mt-2 inline-flex items-center text-xs bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 px-3 py-1 rounded-full border border-emerald-700 transition-colors">
-                      <i className="fas fa-info-circle mr-1.5"></i> Scoring Rules {isAdmin ? '(Edit)' : ''}
-                    </button>
+                    <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+                      <button data-html2canvas-ignore onClick={() => {setEditingRules(activeRules); setShowRulesModal(true);}} className="inline-flex items-center text-xs bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 px-3 py-1 rounded-full border border-emerald-700 transition-colors">
+                        <i className="fas fa-info-circle mr-1.5"></i> Scoring Rules {isAdmin ? '(Edit)' : ''}
+                      </button>
+                      {isAdmin && (
+                        <button data-html2canvas-ignore onClick={() => {setEditingHcp(activeHcpRules); setShowHcpModal(true);}} className="inline-flex items-center text-xs bg-amber-600/80 hover:bg-amber-600 text-amber-100 px-3 py-1 rounded-full border border-amber-700 transition-colors shadow-sm">
+                          <i className="fas fa-users-cog mr-1.5"></i> Group HCP (Edit)
+                        </button>
+                      )}
+                    </div>
 
                     <button onClick={() => captureLeaderboardImage('leaderboard-capture', `${event.name}-Leaderboard-${activeTab}`)} data-html2canvas-ignore className="absolute right-4 bottom-4 bg-emerald-700 text-white px-3 py-1.5 rounded shadow text-xs hover:bg-emerald-600"><i className="fas fa-download mr-1"></i>Save Image</button>
                   </div>
@@ -3123,10 +3143,17 @@
                     {newEventData.pars.map((par, i) => (
                       <div key={i} className="text-center min-w-[40px]">
                         <label className="block text-[10px] font-bold text-emerald-800 mb-1">H{i + 1}</label>
-                        <input type="number" min="3" max="5" value={par} onChange={(e) => {
-                          const newPars = [...newEventData.pars]; newPars[i] = parseInt(e.target.value) || 4;
-                          setNewEventData({...newEventData, pars: newPars});
-                        }} className={`w-full text-center border rounded-lg p-2 font-mono font-bold text-sm outline-none focus:ring-2 focus:ring-emerald-500 ${isCustomCourse ? 'bg-white border-amber-300' : 'bg-white'}`} />
+                        <input
+                          type="number" min="3" max="5"
+                          inputMode="numeric" pattern="[0-9]*"
+                          onFocus={(e) => e.target.select()}
+                          value={par}
+                          onChange={(e) => {
+                            const newPars = [...newEventData.pars]; newPars[i] = parseInt(e.target.value) || 4;
+                            setNewEventData({...newEventData, pars: newPars});
+                          }}
+                          className={`w-full text-center border rounded-lg p-2 font-mono font-bold text-sm outline-none focus:ring-2 focus:ring-emerald-500 ${isCustomCourse ? 'bg-white border-amber-300' : 'bg-white'}`}
+                        />
                       </div>
                     ))}
                   </div>
@@ -3157,6 +3184,74 @@
                     <button type="submit" id="btn-save-event" className="bg-emerald-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-emerald-800 w-full md:w-auto">Save Event</button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {showHcpModal && (
+            <div className="fixed inset-0 glass-modal flex items-center justify-center p-4 z-[980]">
+              <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative border-t-8 border-amber-500">
+                <button onClick={() => setShowHcpModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"><i className="fas fa-times text-xl"></i></button>
+                <div className="flex items-center mb-6 border-b pb-3">
+                  <i className="fas fa-users-cog text-3xl text-amber-500 mr-3"></i>
+                  <div>
+                    <h3 className="text-xl font-bold text-emerald-900">Custom Handicap</h3>
+                    <p className="text-xs text-gray-500">ปรับเกณฑ์ Handicap สำหรับแบ่งกลุ่ม A, B, C</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 md:space-y-6">
+                  <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200 shadow-sm">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="font-bold text-emerald-900"><i className="fas fa-flag text-emerald-600 mr-1.5"></i>Group A</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs md:text-sm font-bold text-gray-600">HCP 0 ถึง</span>
+                        <input
+                          type="number" min="0" max={editingHcp.groupCMin - 2}
+                          inputMode="numeric" pattern="[0-9]*"
+                          onFocus={(e) => e.target.select()}
+                          value={editingHcp.groupAMax}
+                          onChange={(e) => setEditingHcp({...editingHcp, groupAMax: parseInt(e.target.value) || 0})}
+                          className="w-16 text-center border border-emerald-300 rounded-lg p-1.5 font-mono font-bold text-sm bg-white outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+                    <input type="range" min="0" max={editingHcp.groupCMin - 2} value={editingHcp.groupAMax} onChange={(e) => setEditingHcp({...editingHcp, groupAMax: parseInt(e.target.value) || 0})} className="w-full accent-emerald-600" />
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 opacity-90 relative overflow-hidden">
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gray-400"></div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-gray-700 ml-2">Group B <span className="text-[10px] md:text-xs text-amber-600 ml-1.5 bg-amber-100 px-1.5 py-0.5 rounded">อัตโนมัติ</span></span>
+                      <span className="text-xs md:text-sm font-mono font-bold text-gray-700 bg-white px-3 py-1.5 rounded-lg border border-gray-300 shadow-sm">HCP {editingHcp.groupAMax + 1} - {editingHcp.groupCMin - 1}</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-2 ml-2">* ช่วงคะแนนคำนวณแทรกกลางอัตโนมัติ ไม่ซ้ำซ้อนแน่นอน</p>
+                  </div>
+
+                  <div className="bg-rose-50 p-4 rounded-xl border border-rose-200 shadow-sm">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="font-bold text-rose-900"><i className="fas fa-flag text-rose-600 mr-1.5"></i>Group C</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs md:text-sm font-bold text-gray-600">HCP ตั้งแต่</span>
+                        <input
+                          type="number" min={editingHcp.groupAMax + 2} max="36"
+                          inputMode="numeric" pattern="[0-9]*"
+                          onFocus={(e) => e.target.select()}
+                          value={editingHcp.groupCMin}
+                          onChange={(e) => setEditingHcp({...editingHcp, groupCMin: parseInt(e.target.value) || 0})}
+                          className="w-16 text-center border border-rose-300 rounded-lg p-1.5 font-mono font-bold text-sm bg-white outline-none focus:ring-2 focus:ring-rose-500"
+                        />
+                        <span className="text-xs md:text-sm font-bold text-gray-600">ขึ้นไป</span>
+                      </div>
+                    </div>
+                    <input type="range" min={editingHcp.groupAMax + 2} max="36" value={editingHcp.groupCMin} onChange={(e) => setEditingHcp({...editingHcp, groupCMin: parseInt(e.target.value) || 0})} className="w-full accent-rose-600" />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-5 mt-5 border-t gap-2">
+                  <button onClick={() => setShowHcpModal(false)} className="bg-gray-200 text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-300 transition-colors">ยกเลิก</button>
+                  <button onClick={saveHcpRules} className="bg-amber-500 text-emerald-950 px-6 py-2.5 rounded-xl font-bold shadow-md hover:bg-amber-400 text-sm transition-colors"><i className="fas fa-save mr-2"></i>บันทึกการจัดกลุ่ม</button>
+                </div>
               </div>
             </div>
           )}
